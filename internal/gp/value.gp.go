@@ -133,8 +133,8 @@ type GOGPGlobalNamePrefixValue struct {
 	Target      *GOGPElemType  // Target set the outer value pointer
 	Default     GOGPElemType   // Default value
 	DefaultText string         // Default value help info
-	Enums       []GOGPElemType // Enumeration of valid values
-	Min, Max    GOGPElemType   // [Min,Max] range of the valid values
+	Enums       []GOGPValueType // Enumeration of valid values
+	Ranges      []GOGPValueType // [min,max,min,max...] ranges of the valid values
 	hasBeenSet  bool
 }
 
