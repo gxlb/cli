@@ -14,16 +14,16 @@ package gp
 
 //#GOGP_IFDEF SLICE_TYPE
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
+	//"strings"
 )
 
 //#GOGP_ENDIF //SLICE_TYPE
 
-//#GOGP_REQUIRE(github.com/os/gogp/lib/fakedef,_)
-//#GOGP_IGNORE_BEGIN ///require begin from(github.com/os/gogp/lib/fakedef)
+//#GOGP_REQUIRE(github.com/gxlb/gogp/lib/fakedef,_)
+//#GOGP_IGNORE_BEGIN ///require begin from(github.com/gxlb/gogp/lib/fakedef)
 //#GOGP_IFDEF GOGP_DO_NOT_HAS_THIS_DEFINE__
 //this is a fake types for other gp file
 //#GOGP_ENDIF
@@ -41,7 +41,11 @@ type GOGPValueType int                               //
 func (this GOGPValueType) Less(o GOGPValueType) bool { return this < o }
 func (this GOGPValueType) Show() string              { return "" } //
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//#GOGP_IGNORE_END ///require end from(github.com/os/gogp/lib/fakedef)
+//#GOGP_IGNORE_END ///require end from(github.com/gxlb/gogp/lib/fakedef)
+
+//#GOGP_IGNORE_BEGIN
+type GOGPElemType = GOGPGlobalNamePrefixSlice //
+//#GOGP_IGNORE_END
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -58,14 +62,14 @@ func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePref
 }
 
 // TODO: Consistently have specific Set function for Int64 and Float64 ?
-// SetInt directly adds an integer to the list of values
-func (s *GOGPGlobalNamePrefixSlice) Append(value GOGPValueType) {
+// Append directly adds an integer to the list of values
+func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
 	if !s.hasBeenSet {
 		s.slice = []GOGPValueType{}
 		s.hasBeenSet = true
 	}
 
-	s.slice = append(s.slice, value)
+	s.slice = append(s.slice, value...)
 }
 
 // Set parses the value into an integer and appends it to the list of values
@@ -75,12 +79,12 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 		s.hasBeenSet = true
 	}
 
-	if strings.HasPrefix(value, slPfx) {
-		// Deserializing assumes overwrite
-		_ = json.Unmarshal([]byte(strings.Replace(value, slPfx, "", 1)), &s.slice)
-		s.hasBeenSet = true
-		return nil
-	}
+	// if strings.HasPrefix(value, slPfx) {
+	// 	// Deserializing assumes overwrite
+	// 	_ = json.Unmarshal([]byte(strings.Replace(value, slPfx, "", 1)), &s.slice)
+	// 	s.hasBeenSet = true
+	// 	return nil
+	// }
 
 	tmp, err := strconv.ParseInt(value, 0, 64)
 	if err != nil {
@@ -99,8 +103,10 @@ func (s *GOGPGlobalNamePrefixSlice) String() string {
 
 // Serialize allows GOGPGlobalNamePrefixSlice to fulfill Serializer
 func (s *GOGPGlobalNamePrefixSlice) Serialize() string {
-	jsonBytes, _ := json.Marshal(s.slice)
-	return fmt.Sprintf("%s%s", slPfx, string(jsonBytes))
+	//TODO:
+	// jsonBytes, _ := json.Marshal(s.slice)
+	// return fmt.Sprintf("%s%s", slPfx, string(jsonBytes))
+	return ""
 }
 
 // Value returns the slice of ints set by this flag
@@ -108,21 +114,27 @@ func (s *GOGPGlobalNamePrefixSlice) Value() []GOGPValueType {
 	return s.slice
 }
 
-// Get returns the slice of ints set by this flag
+// Get returns the slice set by this flag
 func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 	return *s
 }
 
+//#GOGP_REPLACE(GOGPElemType, GOGPGlobalNamePrefixSlice)
+
+//#GOGP_ELSE //SLICE_TYPE
+
+//#GOGP_REPLACE(GOGPElemType, GOGPValueType)
+
 //#GOGP_ENDIF //SLICE_TYPE
 
-// GOGPGlobalNamePrefixValue define a value of type GOGPValueType
+// GOGPGlobalNamePrefixValue define a value of type GOGPElemType
 type GOGPGlobalNamePrefixValue struct {
-	Value       GOGPValueType   // The value from ENV of files
-	Target      *GOGPValueType  // Target set the outer value pointer
-	Default     GOGPValueType   // Default value
-	DefaultText string          // Default value help info
-	Enums       []GOGPValueType // Enumeration of valid values
-	Min, Max    GOGPValueType   // [Min,Max] range of the valid values
+	Value       GOGPElemType   // The value from ENV of files
+	Target      *GOGPElemType  // Target set the outer value pointer
+	Default     GOGPElemType   // Default value
+	DefaultText string         // Default value help info
+	Enums       []GOGPElemType // Enumeration of valid values
+	Min, Max    GOGPElemType   // [Min,Max] range of the valid values
 	hasBeenSet  bool
 }
 
