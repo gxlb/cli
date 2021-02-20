@@ -46,24 +46,24 @@ func (this GOGPValueType) Show() string              { return "" } //
 
 //#GOGP_IGNORE_BEGIN
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice //
-type Value interface {
+type Flag interface {
 	fmt.Stringer
-	Init(*Flag) error
+	Init() error
 	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
 	IsSet() bool
+	Info() *FlagInfo
 }
-type Flag struct {
-	LogicName string
-	Name      string
-	Aliases   []string
-	Usage     string
-	Required  bool
-	Hidden    bool
-	EnvVars   []string
-	FilePath  string
-	Value     Value
-	names     []string
-	logicName string
+
+type FlagInfo struct {
+	LogicName  string   // logic name of the flag
+	Names      []string // name+aliases of the flag
+	Usage      string   // usage string
+	Required   bool     // if required
+	Hidden     bool     // hidden this flag
+	EnvVars    []string // environment values
+	FilePath   string   // file path
+	Flag       Flag     // value of this flag
+	HasBeenSet bool     // if the value was set
 }
 
 const maxSliceLen = 100
@@ -170,26 +170,43 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 
 //#GOGP_ENDIF //SLICE_TYPE
 
-// GOGPGlobalNamePrefixValue define a value of type GOGPREPElemType
-type GOGPGlobalNamePrefixValue struct {
+// GOGPGlobalNamePrefixFlag define a value of type GOGPREPElemType
+type GOGPGlobalNamePrefixFlag struct {
+	////////////////////////////////////////////////////////////////////////////
+	//
+	//name related area
+	//
+	LogicName string   // logic name of the flag
+	Name      string   // name of the flag
+	Aliases   []string // aliases of the flag
+	Usage     string   // usage string
+	Required  bool     // if required
+	Hidden    bool     // hidden this flag
+	EnvVars   []string // environment values
+	FilePath  string   // file path
+	//
+	//value related area
+	//
 	Target      *GOGPREPElemType // Target value pointer outside
 	Default     GOGPREPElemType  // Default value
 	DefaultText string           // Default value in help info
 	Enums       []GOGPValueType  // Enumeration of valid values
 	Ranges      []GOGPValueType  // {[min,max),[min,max),[min...)} ranges of valid values
-	value       GOGPREPElemType  // The value from ENV of files
-	hasBeenSet  bool             // if the value was set
-	flag        *Flag            // pointer of owner flag
+
+	////////////////////////////////////////////////////////////////////////////
+	//area for parsing
+	value GOGPREPElemType // value that affect by flagset
+	info  FlagInfo        // parsed info of this flag
 }
 
 // Init verify and init the value by ower flag
-func (v *GOGPGlobalNamePrefixValue) Init(f *Flag) error {
-	v.flag = f
+func (v *GOGPGlobalNamePrefixFlag) Init() error {
+	v.info.Flag = v
 	if l := len(v.Enums); l > maxSliceLen {
-		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.flag.logicName, l, maxSliceLen)
+		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.LogicName, l, maxSliceLen)
 	}
 	if l := len(v.Ranges); l > maxSliceLen {
-		return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.flag.logicName, l, maxSliceLen)
+		return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.LogicName, l, maxSliceLen)
 	}
 	if err := v.validateValues(v.Default); err != nil {
 		return fmt.Errorf("default value invalid: %s", err.Error())
@@ -198,31 +215,36 @@ func (v *GOGPGlobalNamePrefixValue) Init(f *Flag) error {
 }
 
 // IsSet check if value was set
-func (v *GOGPGlobalNamePrefixValue) IsSet() bool {
+func (v *GOGPGlobalNamePrefixFlag) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
 	return v.value.hasBeenSet
 	//#GOGP_ELSE
-	return v.hasBeenSet
+	return v.info.HasBeenSet
 	//#GOGP_ENDIF //SLICE_TYPE
 }
 
 // Apply coordinate the value to flagset
-func (v *GOGPGlobalNamePrefixValue) Apply(set *flag.FlagSet) error {
+func (v *GOGPGlobalNamePrefixFlag) Apply(set *flag.FlagSet) error {
 	return nil
 }
 
 // String return the value for view
-func (v *GOGPGlobalNamePrefixValue) String() string {
+func (v *GOGPGlobalNamePrefixFlag) String() string {
 	return ""
 }
 
 // ValidateValues verify if all values was valid
-func (v *GOGPGlobalNamePrefixValue) ValidateValues() error {
+func (v *GOGPGlobalNamePrefixFlag) ValidateValues() error {
 	return v.validateValues(v.value)
 }
 
+// Info returns parsed info of this flag
+func (v *GOGPGlobalNamePrefixFlag) Info() *FlagInfo {
+	return &v.info
+}
+
 // for default value verify
-func (v *GOGPGlobalNamePrefixValue) validateValues(values GOGPREPElemType) error {
+func (v *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error {
 	//#GOGP_IFDEF SLICE_TYPE
 	for _, val := range values.slice {
 		if err := v.validValue(val); err != nil {
@@ -236,8 +258,8 @@ func (v *GOGPGlobalNamePrefixValue) validateValues(values GOGPREPElemType) error
 }
 
 // check if value if valid for this flag
-func (v *GOGPGlobalNamePrefixValue) validValue(value GOGPValueType) error {
-	f := v.flag
+func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
+	f := &v.info
 	if len(v.Enums) > 0 {
 		found := false
 		for _, v := range v.Enums {
@@ -247,7 +269,7 @@ func (v *GOGPGlobalNamePrefixValue) validValue(value GOGPValueType) error {
 			}
 		}
 		if !found {
-			return fmt.Errorf("flag %s value %v out of Enums: %v", f.logicName, value, v.Enums)
+			return fmt.Errorf("flag %s value %v out of Enums: %v", f.LogicName, value, v.Enums)
 		}
 	}
 	if len(v.Ranges) > 0 {
@@ -264,13 +286,13 @@ func (v *GOGPGlobalNamePrefixValue) validValue(value GOGPValueType) error {
 			}
 		}
 		if !found {
-			return fmt.Errorf("flag %s value %v out of Ranges: %v", f.logicName, value, v.Enums)
+			return fmt.Errorf("flag %s value %v out of Ranges: %v", f.LogicName, value, v.Enums)
 		}
 	}
 	return nil
 }
 
-var _ Value = (*GOGPGlobalNamePrefixValue)(nil) //for interface verification only
+var _ Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
