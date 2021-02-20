@@ -14,9 +14,9 @@ package gp
 
 import (
 	"flag"
+	"fmt"
 
 	//#GOGP_IFDEF SLICE_TYPE
-	"fmt"
 	"strconv"
 	//"encoding/json"
 	//"strings"
@@ -64,6 +64,8 @@ type Flag struct {
 	names     []string
 	logicName string
 }
+
+const maxSliceLen = 100
 
 //#GOGP_IGNORE_END
 
@@ -164,25 +166,66 @@ type GOGPGlobalNamePrefixValue struct {
 	Default     GOGPElemType    // Default value
 	DefaultText string          // Default value in help info
 	Enums       []GOGPValueType // Enumeration of valid values
-	Ranges      []GOGPValueType // [min,max,min,max...] ranges of valid values
+	Ranges      []GOGPValueType // {[min,max),[min,max),[min...)} ranges of valid values
 	value       GOGPElemType    // The value from ENV of files
 	hasBeenSet  bool
 }
 
 func (v *GOGPGlobalNamePrefixValue) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
-	return v.Value.hasBeenSet
+	return v.value.hasBeenSet
 	//#GOGP_ELSE
 	return v.hasBeenSet
 	//#GOGP_ENDIF //SLICE_TYPE
 }
 
 func (v *GOGPGlobalNamePrefixValue) Apply(f *Flag, set *flag.FlagSet) error {
+	if l := len(v.Enums); l > maxSliceLen {
+		return fmt.Errorf("flag %s.Enums too long: %d/%d", f.logicName, l, maxSliceLen)
+	}
+	if l := len(v.Ranges); l > maxSliceLen {
+		return fmt.Errorf("flag %s.Ranges too long: %d/%d", f.logicName, l, maxSliceLen)
+	}
+
 	return nil
 }
 
 func (v *GOGPGlobalNamePrefixValue) String() string {
 	return ""
+}
+
+// check if value if valid for this flag
+func (v *GOGPGlobalNamePrefixValue) validValue(f *Flag, value GOGPValueType) error {
+	if len(v.Enums) > 0 {
+		found := false
+		for _, v := range v.Enums {
+			if value == v {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("flag %s value %v out of Enums: %v", f.logicName, value, v.Enums)
+		}
+	}
+	if len(v.Ranges) > 0 {
+		found := false
+		for i := 0; i < len(v.Ranges); i++ {
+			min := v.Ranges[i]
+			max := min
+			if i++; i < len(v.Ranges) {
+				max = v.Ranges[i]
+			}
+			if value >= min && value < max {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("flag %s value %v out of Ranges: %v", f.logicName, value, v.Enums)
+		}
+	}
+	return nil
 }
 
 //#GOGP_FILE_END
