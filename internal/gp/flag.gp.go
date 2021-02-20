@@ -47,11 +47,12 @@ func (this GOGPValueType) Show() string              { return "" } //
 //#GOGP_IGNORE_BEGIN
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice //
 type Flag interface {
-	fmt.Stringer
-	Init() error
+	fmt.Stringer               // Show flag help info
+	Init() error               // init parsing of this flag
 	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
-	IsSet() bool
-	Info() *FlagInfo
+	IsSet() bool               // check if the flag value was set
+	Info() *FlagInfo           // parsed info of this flag
+	Reset()                    // reset the flag value
 }
 
 type FlagInfo struct {
@@ -69,6 +70,7 @@ type FlagInfo struct {
 const maxSliceLen = 100
 
 var GOGPREPSingleValue GOGPValueType
+var GOGPREPSliceValue GOGPGlobalNamePrefixSlice
 
 func GOGPREPParseString(string) (GOGPValueType, error) {
 	var s GOGPValueType
@@ -136,6 +138,12 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 	return nil
 }
 
+// Reset clean the last parsed value of this slice
+func (s *GOGPGlobalNamePrefixSlice) Reset() {
+	s.slice = s.slice[:0]
+	s.hasBeenSet = false
+}
+
 // String returns a readable representation of this value (for usage defaults)
 func (s *GOGPGlobalNamePrefixSlice) String() string {
 	return fmt.Sprintf("%#v", s.slice)
@@ -162,6 +170,7 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 //#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
+//#GOGP_REPLACE(GOGPREPSliceValue, v.target)
 
 //#GOGP_ELSE //SLICE_TYPE
 
@@ -195,8 +204,8 @@ type GOGPGlobalNamePrefixFlag struct {
 
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
-	value GOGPREPElemType // value that affect by flagset
-	info  FlagInfo        // parsed info of this flag
+	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPElemType) if Target not set)
+	info   FlagInfo         // parsed info of this flag
 }
 
 // Init verify and init the value by ower flag
@@ -217,7 +226,7 @@ func (v *GOGPGlobalNamePrefixFlag) Init() error {
 // IsSet check if value was set
 func (v *GOGPGlobalNamePrefixFlag) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
-	return v.value.hasBeenSet
+	return v.target.hasBeenSet
 	//#GOGP_ELSE
 	return v.info.HasBeenSet
 	//#GOGP_ENDIF //SLICE_TYPE
@@ -235,12 +244,27 @@ func (v *GOGPGlobalNamePrefixFlag) String() string {
 
 // ValidateValues verify if all values was valid
 func (v *GOGPGlobalNamePrefixFlag) ValidateValues() error {
-	return v.validateValues(v.value)
+	//#GOGP_IFDEF SLICE_TYPE
+	return v.validateValues(GOGPREPSliceValue)
+	//#GOGP_ELSE
+	return v.validateValues(*v.target)
+	//#GOGP_ENDIF //SLICE_TYPE
+
 }
 
 // Info returns parsed info of this flag
 func (v *GOGPGlobalNamePrefixFlag) Info() *FlagInfo {
 	return &v.info
+}
+
+// Reset clean the last parsed value of this flag
+func (v *GOGPGlobalNamePrefixFlag) Reset() {
+	//#GOGP_IFDEF SLICE_TYPE
+	v.target.Reset()
+	//#GOGP_ELSE
+	var t GOGPREPElemType
+	*v.target = t
+	//#GOGP_ENDIF //SLICE_TYPE
 }
 
 // for default value verify

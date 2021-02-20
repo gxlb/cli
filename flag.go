@@ -9,11 +9,12 @@ const maxSliceLen = 100 //define max slice len to avoid low effect range of slic
 
 // Flag
 type Flag interface {
-	fmt.Stringer
-	Init() error
+	fmt.Stringer               // Show flag help info
+	Init() error               // init parsing of this flag
 	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
-	IsSet() bool
-	Info() *FlagInfo
+	IsSet() bool               // check if the flag value was set
+	Info() *FlagInfo           // parsed info of this flag
+	Reset()                    // reset the flag value
 }
 
 // FlagInfo
