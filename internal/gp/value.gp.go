@@ -170,7 +170,7 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 
 //#GOGP_ENDIF //SLICE_TYPE
 
-// GOGPGlobalNamePrefixValue define a value of type GOGPElemType
+// GOGPGlobalNamePrefixValue define a value of type GOGPREPElemType
 type GOGPGlobalNamePrefixValue struct {
 	Target      *GOGPREPElemType // Target value pointer outside
 	Default     GOGPREPElemType  // Default value
