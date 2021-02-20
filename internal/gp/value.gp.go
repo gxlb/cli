@@ -12,15 +12,16 @@ package gp
 //
 //#GOGP_IGNORE_END ///gogp_file_begin
 
-//#GOGP_IFDEF SLICE_TYPE
 import (
-	//"encoding/json"
+	"flag"
+
+	//#GOGP_IFDEF SLICE_TYPE
 	"fmt"
 	"strconv"
+	//"encoding/json"
 	//"strings"
+	//#GOGP_ENDIF //SLICE_TYPE
 )
-
-//#GOGP_ENDIF //SLICE_TYPE
 
 //#GOGP_REQUIRE(github.com/gxlb/gogp/lib/fakedef,_)
 //#GOGP_IGNORE_BEGIN ///require begin from(github.com/gxlb/gogp/lib/fakedef)
@@ -45,6 +46,25 @@ func (this GOGPValueType) Show() string              { return "" } //
 
 //#GOGP_IGNORE_BEGIN
 type GOGPElemType = GOGPGlobalNamePrefixSlice //
+type Value interface {
+	fmt.Stringer
+	Apply(*Flag, *flag.FlagSet) error // Apply Flag settings to the given flag set
+	IsSet() bool
+}
+type Flag struct {
+	LogicName string
+	Name      string
+	Aliases   []string
+	Usage     string
+	Required  bool
+	Hidden    bool
+	EnvVars   []string
+	FilePath  string
+	Value     Value
+	names     []string
+	logicName string
+}
+
 //#GOGP_IGNORE_END
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -143,10 +163,25 @@ type GOGPGlobalNamePrefixValue struct {
 	Value       GOGPElemType    // The value from ENV of files
 	Target      *GOGPElemType   // Target set the outer value pointer
 	Default     GOGPElemType    // Default value
-	DefaultText string          // Default value help info
+	DefaultText string          // Default value in help info
 	Enums       []GOGPValueType // Enumeration of valid values
 	Ranges      []GOGPValueType // [min,max,min,max...] ranges of valid values
 	hasBeenSet  bool
+}
+
+func (v *GOGPGlobalNamePrefixValue) IsSet() bool {
+	//#GOGP_IFDEF SLICE_TYPE
+	return v.Value.hasBeenSet
+	//#GOGP_ENDIF //SLICE_TYPE
+	return v.hasBeenSet
+}
+
+func (v *GOGPGlobalNamePrefixValue) Apply(f *Flag, set *flag.FlagSet) error {
+	return nil
+}
+
+func (v *GOGPGlobalNamePrefixValue) String() string {
+	return ""
 }
 
 //#GOGP_FILE_END

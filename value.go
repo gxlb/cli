@@ -7,6 +7,6 @@ import (
 
 type Value interface {
 	fmt.Stringer
-	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
+	Apply(*Flag, *flag.FlagSet) error // Apply Flag settings to the given flag set
 	IsSet() bool
 }
