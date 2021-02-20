@@ -58,15 +58,16 @@ type Flag interface {
 }
 
 type FlagInfo struct {
-	LogicName  string   // logic name of the flag
-	Names      []string // name+aliases of the flag
-	Usage      string   // usage string
-	Required   bool     // if required
-	Hidden     bool     // hidden this flag
-	EnvVars    []string // environment values
-	FilePath   string   // file path
-	Flag       Flag     // value of this flag
-	HasBeenSet bool     // if the value was set
+	LogicName   string   // logic name of the flag
+	Names       []string // name+aliases of the flag
+	Usage       string   // usage string
+	Required    bool     // if required
+	Hidden      bool     // hidden this flag
+	EnvVars     []string // environment values
+	FilePath    string   // file path
+	Flag        Flag     // value reference of this flag
+	HasBeenSet  bool     // if the value was set
+	DefaultText string   // Default value in help info
 }
 
 const maxSliceLen = 100
@@ -113,7 +114,7 @@ func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
 }
 
 // TODO: Consistently have specific Set function for Int64 and Float64 ?
-// Append directly adds an integer to the list of values
+// Append directly adds values to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
 	if !s.hasBeenSet {
 		s.slice = []GOGPValueType{}
@@ -226,6 +227,13 @@ type GOGPGlobalNamePrefixFlag struct {
 // Init verify and init the value by ower flag
 func (v *GOGPGlobalNamePrefixFlag) Init() error {
 	v.info.Flag = v
+	v.info.EnvVars = v.EnvVars
+	v.info.Usage = v.Usage
+	v.info.DefaultText = v.DefaultText
+	v.info.Required = v.Required
+	v.info.Hidden = v.Hidden
+	v.info.FilePath = v.FilePath
+
 	if l := len(v.Enums); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.LogicName, l, maxSliceLen)
 	}
