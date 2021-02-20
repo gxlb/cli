@@ -160,20 +160,21 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 
 // GOGPGlobalNamePrefixValue define a value of type GOGPElemType
 type GOGPGlobalNamePrefixValue struct {
-	Value       GOGPElemType    // The value from ENV of files
-	Target      *GOGPElemType   // Target set the outer value pointer
+	Target      *GOGPElemType   // Target value pointer outside
 	Default     GOGPElemType    // Default value
 	DefaultText string          // Default value in help info
 	Enums       []GOGPValueType // Enumeration of valid values
 	Ranges      []GOGPValueType // [min,max,min,max...] ranges of valid values
+	value       GOGPElemType    // The value from ENV of files
 	hasBeenSet  bool
 }
 
 func (v *GOGPGlobalNamePrefixValue) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
 	return v.Value.hasBeenSet
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ELSE
 	return v.hasBeenSet
+	//#GOGP_ENDIF //SLICE_TYPE
 }
 
 func (v *GOGPGlobalNamePrefixValue) Apply(f *Flag, set *flag.FlagSet) error {
