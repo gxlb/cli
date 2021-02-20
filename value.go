@@ -9,6 +9,7 @@ const maxSliceLen = 100 //define max slice len to avoid low effect range of slic
 
 type Value interface {
 	fmt.Stringer
-	Apply(*Flag, *flag.FlagSet) error // Apply Flag settings to the given flag set
+	Init(*Flag) error
+	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
 	IsSet() bool
 }
