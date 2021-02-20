@@ -19,7 +19,7 @@ import (
 	//#GOGP_IFDEF SLICE_TYPE
 	"strconv"
 	//"encoding/json"
-	//"strings"
+	"strings"
 	//#GOGP_ENDIF //SLICE_TYPE
 )
 
@@ -45,7 +45,8 @@ func (this GOGPValueType) Show() string              { return "" } //
 //#GOGP_IGNORE_END ///require end from(github.com/gxlb/gogp/lib/fakedef)
 
 //#GOGP_IGNORE_BEGIN
-type GOGPREPElemType = GOGPGlobalNamePrefixSlice //
+type GOGPREPElemType = GOGPGlobalNamePrefixSlice    //
+type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice //
 type Flag interface {
 	fmt.Stringer               // Show flag help info
 	Init() error               // init parsing of this flag
@@ -76,6 +77,9 @@ func GOGPREPParseString(string) (GOGPValueType, error) {
 	var s GOGPValueType
 	return s, nil
 }
+func flagSplitMultiValues(val string) []string {
+	return nil
+}
 
 //#GOGP_IGNORE_END
 
@@ -90,7 +94,10 @@ type GOGPGlobalNamePrefixSlice struct {
 
 // NewGOGPGlobalNamePrefixSlice makes an *GOGPGlobalNamePrefixSlice with default values
 func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePrefixSlice {
-	return &GOGPGlobalNamePrefixSlice{slice: append([]GOGPValueType{}, defaults...)}
+	return &GOGPGlobalNamePrefixSlice{
+		slice:      append([]GOGPValueType{}, defaults...),
+		hasBeenSet: false,
+	}
 }
 
 // clone allocate a copy of self object
@@ -116,10 +123,6 @@ func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
 
 // Set parses the value into an integer and appends it to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
-	if !s.hasBeenSet {
-		s.slice = []GOGPValueType{}
-		s.hasBeenSet = true
-	}
 
 	// if strings.HasPrefix(value, slPfx) {
 	// 	// Deserializing assumes overwrite
@@ -128,12 +131,20 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 	// 	return nil
 	// }
 
-	tmp, err := GOGPREPParseString(value)
-	if err != nil {
-		return err
-	}
+	for _, val := range flagSplitMultiValues(value) {
+		value := strings.TrimSpace(val)
+		tmp, err := GOGPREPParseString(value)
+		if err != nil {
+			return err
+		}
 
-	s.slice = append(s.slice, GOGPValueType(tmp))
+		if !s.hasBeenSet {
+			s.slice = []GOGPValueType{}
+			s.hasBeenSet = true
+		}
+
+		s.slice = append(s.slice, GOGPValueType(tmp))
+	}
 
 	return nil
 }
@@ -171,17 +182,18 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 //#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
 //#GOGP_REPLACE(GOGPREPSliceValue, v.target)
+//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixSlice)
 
 //#GOGP_ELSE //SLICE_TYPE
 
 //#GOGP_REPLACE(GOGPREPSingleValue, values)
 //#GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
+//#GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
 
 //#GOGP_ENDIF //SLICE_TYPE
 
 // GOGPGlobalNamePrefixFlag define a value of type GOGPREPElemType
 type GOGPGlobalNamePrefixFlag struct {
-	////////////////////////////////////////////////////////////////////////////
 	//
 	//name related area
 	//
@@ -200,8 +212,8 @@ type GOGPGlobalNamePrefixFlag struct {
 	Default     GOGPREPElemType  // Default value
 	DefaultText string           // Default value in help info
 	Enums       []GOGPValueType  // Enumeration of valid values
-	Ranges      []GOGPValueType  // {[min,max),[min,max),[min...)} ranges of valid values
-
+	Ranges      []GOGPValueType  // {[min,max),[min,)...} ranges of valid values
+	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
 	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPElemType) if Target not set)
@@ -214,11 +226,35 @@ func (v *GOGPGlobalNamePrefixFlag) Init() error {
 	if l := len(v.Enums); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.LogicName, l, maxSliceLen)
 	}
-	if l := len(v.Ranges); l > maxSliceLen {
-		return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.LogicName, l, maxSliceLen)
+	if l := len(v.Ranges); l > 0 {
+		if l > maxSliceLen {
+			return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.LogicName, l, maxSliceLen)
+		}
+		if l%2 != 0 {
+			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", v.info.LogicName, l)
+		}
+		for i := 0; i < l; i += 2 {
+			min, max := v.Ranges[i], v.Ranges[i+1]
+			if valid := min <= max; !valid {
+				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", v.info.LogicName, min, max)
+			}
+		}
 	}
+	if v.Name == "" && v.LogicName == "" {
+		return fmt.Errorf("flag missing both Name & LogicName: %v", v)
+	}
+
 	if err := v.validateValues(v.Default); err != nil {
 		return fmt.Errorf("default value invalid: %s", err.Error())
+	}
+	if v.Target != nil {
+		v.target = v.Target
+	} else {
+		//#GOGP_IFDEF SLICE_TYPE
+		v.target = NewGOGPGlobalNamePrefixSlice()
+		//#GOGP_ELSE
+		v.target = new(GOGPREPRawElemType)
+		//#GOGP_ENDIF //SLICE_TYPE
 	}
 	return nil
 }
@@ -265,6 +301,7 @@ func (v *GOGPGlobalNamePrefixFlag) Reset() {
 	var t GOGPREPElemType
 	*v.target = t
 	//#GOGP_ENDIF //SLICE_TYPE
+	v.info.HasBeenSet = false
 }
 
 // for default value verify
@@ -298,12 +335,8 @@ func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	}
 	if len(v.Ranges) > 0 {
 		found := false
-		for i := 0; i < len(v.Ranges); i++ {
-			min := v.Ranges[i]
-			max := min
-			if i++; i < len(v.Ranges) {
-				max = v.Ranges[i]
-			}
+		for i := 0; i < len(v.Ranges); i += 2 {
+			min, max := v.Ranges[i], v.Ranges[i+1]
 			if value >= min && value < max {
 				found = true
 				break

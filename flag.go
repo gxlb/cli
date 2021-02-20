@@ -3,6 +3,7 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 const maxSliceLen = 100 //define max slice len to avoid low effect range of slice
@@ -28,4 +29,8 @@ type FlagInfo struct {
 	FilePath   string   // file path
 	Flag       Flag     // value reference of this flag
 	HasBeenSet bool     // if the value was set
+}
+
+func flagSplitMultiValues(val string) []string {
+	return strings.Split(val, ",")
 }
