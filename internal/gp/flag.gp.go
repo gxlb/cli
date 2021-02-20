@@ -44,9 +44,10 @@ func (this GOGPValueType) Show() string              { return "" } //
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //#GOGP_IGNORE_END ///require end from(github.com/gxlb/gogp/lib/fakedef)
 
-//#GOGP_IGNORE_BEGIN
-type GOGPREPElemType = GOGPGlobalNamePrefixSlice    //
-type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice //
+//#GOGP_IGNORE_BEGIN //fake defines
+////////////////////////////////////////////////////////////////////////////////
+type GOGPREPElemType = GOGPGlobalNamePrefixSlice
+type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
 type Flag interface {
 	fmt.Stringer               // Show flag help info
 	Init() error               // init parsing of this flag
@@ -81,7 +82,8 @@ func flagSplitMultiValues(val string) []string {
 	return nil
 }
 
-//#GOGP_IGNORE_END
+////////////////////////////////////////////////////////////////////////////////
+//#GOGP_IGNORE_END //fake defines
 
 //#GOGP_IFDEF SLICE_TYPE
 var _ = (*strconv.NumError)(nil) //avoid compile error
@@ -131,6 +133,7 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 	// 	return nil
 	// }
 
+	//accept multi values for slice flags
 	for _, val := range flagSplitMultiValues(value) {
 		value := strings.TrimSpace(val)
 		tmp, err := GOGPREPParseString(value)
