@@ -17,8 +17,8 @@ import (
 	"fmt"
 
 	//#GOGP_IFDEF SLICE_TYPE
+	"encoding/json"
 	"strconv"
-	//"encoding/json"
 	"strings"
 	//#GOGP_ENDIF //SLICE_TYPE
 )
@@ -58,6 +58,7 @@ type Flag interface {
 }
 
 type FlagInfo struct {
+	Name        string
 	LogicName   string   // logic name of the flag
 	Names       []string // name+aliases of the flag
 	Usage       string   // usage string
@@ -74,6 +75,7 @@ const maxSliceLen = 100
 
 var GOGPREPSingleValue GOGPValueType
 var GOGPREPSliceValue GOGPGlobalNamePrefixSlice
+var slPfx = "xxx"
 
 func GOGPREPParseString(string) (GOGPValueType, error) {
 	var s GOGPValueType
@@ -81,6 +83,12 @@ func GOGPREPParseString(string) (GOGPValueType, error) {
 }
 func flagSplitMultiValues(val string) []string {
 	return nil
+}
+func mergeNames(name string, aliases []string, out *[]string) bool {
+	return false
+}
+func logicName(logicName string) string {
+	return ""
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,12 +135,12 @@ func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
 // Set parses the value into an integer and appends it to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 
-	// if strings.HasPrefix(value, slPfx) {
-	// 	// Deserializing assumes overwrite
-	// 	_ = json.Unmarshal([]byte(strings.Replace(value, slPfx, "", 1)), &s.slice)
-	// 	s.hasBeenSet = true
-	// 	return nil
-	// }
+	if strings.HasPrefix(value, slPfx) {
+		// Deserializing assumes overwrite
+		_ = json.Unmarshal([]byte(strings.Replace(value, slPfx, "", 1)), &s.slice)
+		s.hasBeenSet = true
+		return nil
+	}
 
 	//accept multi values for slice flags
 	for _, val := range flagSplitMultiValues(value) {
@@ -166,10 +174,8 @@ func (s *GOGPGlobalNamePrefixSlice) String() string {
 
 // Serialize allows GOGPGlobalNamePrefixSlice to fulfill Serializer
 func (s *GOGPGlobalNamePrefixSlice) Serialize() string {
-	//TODO:
-	// jsonBytes, _ := json.Marshal(s.slice)
-	// return fmt.Sprintf("%s%s", slPfx, string(jsonBytes))
-	return ""
+	jsonBytes, _ := json.Marshal(s.slice)
+	return fmt.Sprintf("%s%s", slPfx, string(jsonBytes))
 }
 
 // Value returns the slice of ints set by this flag
@@ -233,6 +239,9 @@ func (v *GOGPGlobalNamePrefixFlag) Init() error {
 	v.info.Required = v.Required
 	v.info.Hidden = v.Hidden
 	v.info.FilePath = v.FilePath
+	v.info.LogicName = logicName(v.LogicName)
+	v.info.Name = v.Name //TODO: deal with noname
+	mergeNames(v.Name, v.Aliases, &v.info.Names)
 
 	if l := len(v.Enums); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.LogicName, l, maxSliceLen)
@@ -359,8 +368,6 @@ func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	}
 	return nil
 }
-
-var _ Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
