@@ -172,8 +172,8 @@ type GOGPGlobalNamePrefixValue struct {
 	Enums       []GOGPValueType  // Enumeration of valid values
 	Ranges      []GOGPValueType  // {[min,max),[min,max),[min...)} ranges of valid values
 	value       GOGPREPElemType  // The value from ENV of files
-	hasBeenSet  bool
-	flag        *Flag //pointer of flag
+	hasBeenSet  bool             // if the value was set
+	flag        *Flag            // pointer of owner flag
 }
 
 // Init verify and init the value by ower flag
@@ -185,10 +185,13 @@ func (v *GOGPGlobalNamePrefixValue) Init(f *Flag) error {
 	if l := len(v.Ranges); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.flag.logicName, l, maxSliceLen)
 	}
+	if err := v.validateValues(v.Default); err != nil {
+		return fmt.Errorf("default value invalid: %s", err.Error())
+	}
 	return nil
 }
 
-// IsSet check if value is setted
+// IsSet check if value was set
 func (v *GOGPGlobalNamePrefixValue) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
 	return v.value.hasBeenSet
@@ -212,7 +215,7 @@ func (v *GOGPGlobalNamePrefixValue) ValidateValues() error {
 	return v.validateValues(v.value)
 }
 
-//for default value verify
+// for default value verify
 func (v *GOGPGlobalNamePrefixValue) validateValues(values GOGPREPElemType) error {
 	//#GOGP_IFDEF SLICE_TYPE
 	for _, val := range values.slice {
