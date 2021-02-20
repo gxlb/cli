@@ -70,11 +70,16 @@ const maxSliceLen = 100
 
 var GOGPREPSingleValue GOGPValueType
 
+func GOGPREPParseString(string) (GOGPValueType, error) {
+	var s GOGPValueType
+	return s, nil
+}
+
 //#GOGP_IGNORE_END
 
-////////////////////////////////////////////////////////////////////////////////
-
 //#GOGP_IFDEF SLICE_TYPE
+var _ = (*strconv.NumError)(nil) //avoid compile error
+
 // GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
 type GOGPGlobalNamePrefixSlice struct {
 	slice      []GOGPValueType
@@ -121,7 +126,7 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 	// 	return nil
 	// }
 
-	tmp, err := strconv.ParseInt(value, 0, 64)
+	tmp, err := GOGPREPParseString(value)
 	if err != nil {
 		return err
 	}
@@ -156,6 +161,7 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 
 //#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
+//#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
 
 //#GOGP_ELSE //SLICE_TYPE
 

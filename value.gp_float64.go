@@ -6,7 +6,7 @@
 // Last update at: [Sat Feb 20 2021 14:27 CST]
 // Generate from:
 //   [github.com/gxlb/cli/internal/gp/value.gp]
-//   [github.com/gxlb/cli/value.gpg] [value_string]
+//   [github.com/gxlb/cli/value.gpg] [value_float64]
 //
 // Tool [github.com/gxlb/gogp] info:
 // CopyRight 2021 @Ally Dale. All rights reserved.
@@ -23,20 +23,20 @@ import (
 	"fmt"
 )
 
-// StringValue define a value of type GOGPElemType
-type StringValue struct {
-	Target      *string  // Target value pointer outside
-	Default     string   // Default value
-	DefaultText string   // Default value in help info
-	Enums       []string // Enumeration of valid values
-	Ranges      []string // {[min,max),[min,max),[min...)} ranges of valid values
-	value       string   // The value from ENV of files
-	hasBeenSet  bool     // if the value was set
-	flag        *Flag    // pointer of owner flag
+// Float64Value define a value of type GOGPElemType
+type Float64Value struct {
+	Target      *float64  // Target value pointer outside
+	Default     float64   // Default value
+	DefaultText string    // Default value in help info
+	Enums       []float64 // Enumeration of valid values
+	Ranges      []float64 // {[min,max),[min,max),[min...)} ranges of valid values
+	value       float64   // The value from ENV of files
+	hasBeenSet  bool      // if the value was set
+	flag        *Flag     // pointer of owner flag
 }
 
 // Init verify and init the value by ower flag
-func (v *StringValue) Init(f *Flag) error {
+func (v *Float64Value) Init(f *Flag) error {
 	v.flag = f
 	if l := len(v.Enums); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.flag.logicName, l, maxSliceLen)
@@ -51,32 +51,32 @@ func (v *StringValue) Init(f *Flag) error {
 }
 
 // IsSet check if value was set
-func (v *StringValue) IsSet() bool {
+func (v *Float64Value) IsSet() bool {
 	return v.hasBeenSet
 }
 
 // Apply coordinate the value to flagset
-func (v *StringValue) Apply(set *flag.FlagSet) error {
+func (v *Float64Value) Apply(set *flag.FlagSet) error {
 	return nil
 }
 
 // String return the value for view
-func (v *StringValue) String() string {
+func (v *Float64Value) String() string {
 	return ""
 }
 
 // ValidateValues verify if all values was valid
-func (v *StringValue) ValidateValues() error {
+func (v *Float64Value) ValidateValues() error {
 	return v.validateValues(v.value)
 }
 
 // for default value verify
-func (v *StringValue) validateValues(values string) error {
+func (v *Float64Value) validateValues(values float64) error {
 	return v.validValue(values)
 }
 
 // check if value if valid for this flag
-func (v *StringValue) validValue(value string) error {
+func (v *Float64Value) validValue(value float64) error {
 	f := v.flag
 	if len(v.Enums) > 0 {
 		found := false
@@ -110,4 +110,4 @@ func (v *StringValue) validValue(value string) error {
 	return nil
 }
 
-var _ Value = (*StringValue)(nil) //for interface verification only
+var _ Value = (*Float64Value)(nil) //for interface verification only
