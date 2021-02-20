@@ -61,6 +61,16 @@ func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePref
 	return &GOGPGlobalNamePrefixSlice{slice: append([]GOGPValueType{}, defaults...)}
 }
 
+// clone allocate a copy of self object
+func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
+	n := &GOGPGlobalNamePrefixSlice{
+		slice:      make([]GOGPValueType, len(s.slice)),
+		hasBeenSet: s.hasBeenSet,
+	}
+	copy(n.slice, s.slice)
+	return n
+}
+
 // TODO: Consistently have specific Set function for Int64 and Float64 ?
 // Append directly adds an integer to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
@@ -119,7 +129,8 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 	return *s
 }
 
-//#GOGP_REPLACE(GOGPElemType, GOGPGlobalNamePrefixSlice)
+//#GOGP_REPLACE(*GOGPElemType, *GOGPGlobalNamePrefixSlice)
+//#GOGP_REPLACE(GOGPElemType, *GOGPGlobalNamePrefixSlice)
 
 //#GOGP_ELSE //SLICE_TYPE
 
@@ -129,12 +140,12 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 
 // GOGPGlobalNamePrefixValue define a value of type GOGPElemType
 type GOGPGlobalNamePrefixValue struct {
-	Value       GOGPElemType   // The value from ENV of files
-	Target      *GOGPElemType  // Target set the outer value pointer
-	Default     GOGPElemType   // Default value
-	DefaultText string         // Default value help info
+	Value       GOGPElemType    // The value from ENV of files
+	Target      *GOGPElemType   // Target set the outer value pointer
+	Default     GOGPElemType    // Default value
+	DefaultText string          // Default value help info
 	Enums       []GOGPValueType // Enumeration of valid values
-	Ranges      []GOGPValueType // [min,max,min,max...] ranges of the valid values
+	Ranges      []GOGPValueType // [min,max,min,max...] ranges of valid values
 	hasBeenSet  bool
 }
 
