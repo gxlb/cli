@@ -1,4 +1,4 @@
-package namegen
+package util
 
 import (
 	"fmt"

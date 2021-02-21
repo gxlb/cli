@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"cli/internal/namegen"
+	"cli/internal/util"
 )
 
 const (
@@ -24,12 +24,12 @@ var (
 
 // Flag
 type Flag interface {
-	fmt.Stringer                                 // Show flag help info
-	Init(namegen *namegen.NameGenenerator) error // init parsing of this flag
-	Apply(*flag.FlagSet) error                   // Apply Flag settings to the given flag set
-	IsSet() bool                                 // check if the flag value was set
-	Info() *FlagInfo                             // parsed info of this flag
-	Reset()                                      // reset the flag value
+	fmt.Stringer                              // Show flag help info
+	Init(namegen *util.NameGenenerator) error // init parsing of this flag
+	Apply(*flag.FlagSet) error                // Apply Flag settings to the given flag set
+	IsSet() bool                              // check if the flag value was set
+	Info() *FlagInfo                          // parsed info of this flag
+	Reset()                                   // reset the flag value
 }
 
 // FlagInfo
@@ -84,4 +84,11 @@ func logicName(logicName string) string {
 		return logicName
 	}
 	return defaultPlaceholder
+}
+
+func dispName(name, logicName string) string {
+	if logicName != "" {
+		return logicName
+	}
+	return name
 }

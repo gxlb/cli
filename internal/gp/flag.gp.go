@@ -16,7 +16,7 @@ import (
 	"flag"
 	"fmt"
 
-	"cli/internal/namegen"
+	"cli/internal/util"
 
 	//#GOGP_IFDEF SLICE_TYPE
 	"encoding/json"
@@ -51,12 +51,12 @@ func (this GOGPValueType) Show() string              { return "" } //
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice
 type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
 type Flag interface {
-	fmt.Stringer                                 // Show flag help info
-	Init(namegen *namegen.NameGenenerator) error // init parsing of this flag
-	Apply(*flag.FlagSet) error                   // Apply Flag settings to the given flag set
-	IsSet() bool                                 // check if the flag value was set
-	Info() *FlagInfo                             // parsed info of this flag
-	Reset()                                      // reset the flag value
+	fmt.Stringer                              // Show flag help info
+	Init(namegen *util.NameGenenerator) error // init parsing of this flag
+	Apply(*flag.FlagSet) error                // Apply Flag settings to the given flag set
+	IsSet() bool                              // check if the flag value was set
+	Info() *FlagInfo                          // parsed info of this flag
+	Reset()                                   // reset the flag value
 }
 
 type FlagInfo struct {
@@ -84,15 +84,10 @@ func GOGPREPParseString(string) (GOGPValueType, error) {
 	var s GOGPValueType
 	return s, nil
 }
-func flagSplitMultiValues(val string) []string {
-	return nil
-}
-func mergeNames(name string, aliases []string, out *[]string) bool {
-	return false
-}
-func logicName(logicName string) string {
-	return ""
-}
+func flagSplitMultiValues(val string) []string                     { return nil }
+func mergeNames(name string, aliases []string, out *[]string) bool { return false }
+func logicName(logicName string) string                            { return "" }
+func dispName(name, logicName string) string                       { return "" }
 
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
@@ -247,7 +242,7 @@ type GOGPGlobalNamePrefixFlag struct {
 }
 
 // Init verify and init the value by ower flag
-func (v *GOGPGlobalNamePrefixFlag) Init(namegen *namegen.NameGenenerator) error {
+func (v *GOGPGlobalNamePrefixFlag) Init(namegen *util.NameGenenerator) error {
 	v.info.Flag = v
 	v.info.EnvVars = v.EnvVars
 	v.info.Usage = v.Usage
@@ -258,7 +253,7 @@ func (v *GOGPGlobalNamePrefixFlag) Init(namegen *namegen.NameGenenerator) error 
 	v.info.LogicName = logicName(v.LogicName)
 	v.info.Name = namegen.GetOrGenName(v.Name)
 	v.info.HasBeenSet = false
-	v.info.DispName = v.Name
+	v.info.DispName = dispName(v.Name, v.LogicName)
 	mergeNames(v.Name, v.Aliases, &v.info.Names)
 
 	if l := len(v.Enums); l > maxSliceLen {
@@ -282,7 +277,7 @@ func (v *GOGPGlobalNamePrefixFlag) Init(namegen *namegen.NameGenenerator) error 
 		return fmt.Errorf("flag missing both Name & LogicName: %v", v)
 	}
 	if v.Name == "" && len(v.Aliases) > 0 {
-
+		return fmt.Errorf("flag %s missing name, but has Aliases %v", v.info.DispName, v.Aliases)
 	}
 
 	if err := v.validateValues(v.Default); err != nil {
