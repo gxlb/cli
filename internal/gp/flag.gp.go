@@ -51,6 +51,7 @@ func (this GOGPValueType) Show() string              { return "" } //
 ////////////////////////////////////////////////////////////////////////////////
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice
 type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
+type Context int
 
 var GOGPREPSingleValue GOGPValueType
 var GOGPREPSliceValue GOGPGlobalNamePrefixSlice
@@ -334,7 +335,7 @@ func (f *GOGPGlobalNamePrefixFlag) ValidateValues() error {
 	//#GOGP_ENDIF //SLICE_TYPE
 }
 
-// Info returns parsed info of this flag
+// Info returns parsed info of this flag, the returned object must READ-ONLY
 func (v *GOGPGlobalNamePrefixFlag) Info() *impl.FlagInfo {
 	return &v.info
 }
@@ -393,6 +394,25 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	}
 	return nil
 }
+
+// // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag, returns
+// // nil if not found
+// func (c *Context) GOGPGlobalNamePrefix(name string) []GOGPValueType {
+// 	if fs := lookupFlagSet(name, c); fs != nil {
+// 		return lookupGOGPREPRawElemType(name, fs)
+// 	}
+// 	return nil
+// }
+
+// func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) []GOGPValueType {
+// 	f := set.Lookup(name)
+// 	if f != nil {
+// 		if slice, ok := f.Value.(*GOGPGlobalNamePrefix); ok {
+// 			return slice.Value()
+// 		}
+// 	}
+// 	return nil
+// }
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 

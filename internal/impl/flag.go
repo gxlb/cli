@@ -25,7 +25,7 @@ type Flag interface {
 	IsSet() bool               // check if the flag value was set
 
 	//init(namegen *util.NameGenenerator) error // init parsing of this flag
-	Info() *FlagInfo       // parsed info of this flag
+	Info() *FlagInfo       // parsed info of this flag, the returned object must READ-ONLY
 	Reset()                // reset the flag value
 	ValidateValues() error // validate set values
 	GetLogicName() string  // GetLogicName returns the logic name of the falg
