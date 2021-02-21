@@ -16,6 +16,8 @@ import (
 	"flag"
 	"fmt"
 
+	"cli/internal/namegen"
+
 	//#GOGP_IFDEF SLICE_TYPE
 	"encoding/json"
 	"strconv"
@@ -49,12 +51,12 @@ func (this GOGPValueType) Show() string              { return "" } //
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice
 type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
 type Flag interface {
-	fmt.Stringer                         // Show flag help info
-	Init(namegen *NameGenenerator) error // init parsing of this flag
-	Apply(*flag.FlagSet) error           // Apply Flag settings to the given flag set
-	IsSet() bool                         // check if the flag value was set
-	Info() *FlagInfo                     // parsed info of this flag
-	Reset()                              // reset the flag value
+	fmt.Stringer                                 // Show flag help info
+	Init(namegen *namegen.NameGenenerator) error // init parsing of this flag
+	Apply(*flag.FlagSet) error                   // Apply Flag settings to the given flag set
+	IsSet() bool                                 // check if the flag value was set
+	Info() *FlagInfo                             // parsed info of this flag
+	Reset()                                      // reset the flag value
 }
 
 type FlagInfo struct {
@@ -71,12 +73,6 @@ type FlagInfo struct {
 	HasBeenSet  bool     // if the value was set
 	DefaultText string   // Default value in help info
 }
-
-type NameGenenerator int
-
-func (g *NameGenenerator) Reset()                          {}
-func (g *NameGenenerator) NextName() string                { return "" }
-func (g *NameGenenerator) GetOrGenName(name string) string { return "" }
 
 const maxSliceLen = 100
 
@@ -251,7 +247,7 @@ type GOGPGlobalNamePrefixFlag struct {
 }
 
 // Init verify and init the value by ower flag
-func (v *GOGPGlobalNamePrefixFlag) Init(namegen *NameGenenerator) error {
+func (v *GOGPGlobalNamePrefixFlag) Init(namegen *namegen.NameGenenerator) error {
 	v.info.Flag = v
 	v.info.EnvVars = v.EnvVars
 	v.info.Usage = v.Usage
