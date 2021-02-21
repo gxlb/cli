@@ -80,24 +80,22 @@ func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePref
 // clone allocate a copy of self object
 func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
 	n := &GOGPGlobalNamePrefixSlice{
-		slice:      make([]GOGPValueType, len(s.slice)),
+		slice:      append([]GOGPValueType{}, s.slice...),
 		hasBeenSet: s.hasBeenSet,
 	}
-	copy(n.slice, s.slice)
 	return n
 }
 
-// Append directly append values to the list of values
-func (s *GOGPGlobalNamePrefixSlice) Append(values ...GOGPValueType) {
+// AppendValues directly append values to the list of values
+func (s *GOGPGlobalNamePrefixSlice) AppendValues(values ...GOGPValueType) {
 	s.setValues(false, values)
 }
 
-// Append directly overite values to the list of values
+// SetValues directly overite values to the list of values
 func (s *GOGPGlobalNamePrefixSlice) SetValues(values ...GOGPValueType) {
 	s.setValues(true, values)
 }
 
-// Append directly adds values to the list of values
 func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValueType) {
 	if !s.hasBeenSet || overwrite {
 		s.Reset()
@@ -107,7 +105,7 @@ func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValue
 	s.slice = append(s.slice, values...)
 }
 
-// Set parses the value and appends it to the list of values
+// Set parses the value and appends to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 
 	if strings.HasPrefix(value, impl.SerializedPrefix) {
@@ -170,7 +168,7 @@ func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
 //#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
-//#GOGP_REPLACE(GOGPREPSliceValue, v.target)
+//#GOGP_REPLACE(GOGPREPSliceValue, f.target)
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixSlice)
 
 //#GOGP_ELSE //SLICE_TYPE
@@ -209,88 +207,131 @@ type GOGPGlobalNamePrefixFlag struct {
 	info   impl.FlagInfo    // parsed info of this flag
 }
 
-// Init verify and init the value by ower flag
-func (v *GOGPGlobalNamePrefixFlag) Init(namegen *util.NameGenenerator) error {
-	v.info.Flag = v
-	v.info.EnvVars = v.EnvVars
-	v.info.Usage = v.Usage
-	v.info.DefaultText = v.DefaultText
-	v.info.Required = v.Required
-	v.info.Hidden = v.Hidden
-	v.info.FilePath = v.FilePath
-	v.info.LogicName = impl.FlagLogicName(v.LogicName)
-	v.info.Name = namegen.GetOrGenName(v.Name)
-	v.info.HasBeenSet = false
-	v.info.DispName = impl.FlagDispName(v.Name, v.LogicName)
-	impl.MergeNames(v.Name, v.Aliases, &v.info.Names)
+// init verify and init the flag info
+func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
+	f.info.Flag = f
+	f.info.EnvVars = append([]string{}, f.EnvVars...)
+	f.info.Usage = f.Usage
+	f.info.DefaultText = f.DefaultText
+	f.info.Required = f.Required
+	f.info.Hidden = f.Hidden
+	f.info.FilePath = f.FilePath
+	f.info.HasBeenSet = false
+	f.info.Name = namegen.GetOrGenName(f.Name)
+	f.info.NonameFlag = f.info.Name != f.Name
+	f.info.LogicName = impl.FlagLogicName(f.Name, f.LogicName)
+	f.info.ValueName = impl.FlagValueName(f.LogicName)
+	impl.MergeNames(f.info.Name, f.Aliases, &f.info.Names) //use v.info.Name to enable auto-generated name
+
+	//make the target pointer
+	if f.Target != nil {
+		f.target = f.Target
+	} else {
+		//#GOGP_IFDEF SLICE_TYPE
+		f.target = NewGOGPGlobalNamePrefixSlice()
+		//#GOGP_ELSE
+		f.target = new(GOGPREPRawElemType)
+		//#GOGP_ENDIF //SLICE_TYPE
+	}
 
 	maxSliceLen := impl.MaxSliceLen
-	if l := len(v.Enums); l > maxSliceLen {
-		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.DispName, l, maxSliceLen)
+	if f.Name == "" && f.LogicName == "" { // Name & LogicName cannot both missing
+		return fmt.Errorf("flag missing both Name & LogicName: %v", f)
 	}
-	if l := len(v.Ranges); l > 0 {
+	if f.Name == "" && len(f.Aliases) > 0 { // Noname ones must without Aliases
+		return fmt.Errorf("flag %s missing name, but has Aliases %v", f.info.LogicName, f.Aliases)
+	}
+	if l := len(f.Enums); l > maxSliceLen { // Enums length check
+		return fmt.Errorf("flag %s.Enums too long: %d/%d", f.info.LogicName, l, maxSliceLen)
+	}
+	if l := len(f.Ranges); l > 0 { // Ranges length check and [min,max) pair check
 		if l > maxSliceLen {
-			return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.DispName, l, maxSliceLen)
+			return fmt.Errorf("flag %s.Ranges too long: %d/%d", f.info.LogicName, l, maxSliceLen)
 		}
 		if l%2 != 0 {
-			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", v.info.DispName, l)
+			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", f.info.LogicName, l)
 		}
 		for i := 0; i < l; i += 2 {
-			min, max := v.Ranges[i], v.Ranges[i+1]
+			min, max := f.Ranges[i], f.Ranges[i+1]
 			if valid := min <= max; !valid {
-				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", v.info.DispName, min, max)
+				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", f.info.LogicName, min, max)
 			}
 		}
 	}
-	if v.Name == "" && v.LogicName == "" {
-		return fmt.Errorf("flag missing both Name & LogicName: %v", v)
-	}
-	if v.Name == "" && len(v.Aliases) > 0 {
-		return fmt.Errorf("flag %s missing name, but has Aliases %v", v.info.DispName, v.Aliases)
-	}
-
-	if err := v.validateValues(v.Default); err != nil {
+	if err := f.validateValues(f.Default); err != nil { // verify default values
 		return fmt.Errorf("default value invalid: %s", err.Error())
 	}
-	if v.Target != nil {
-		v.target = v.Target
-	} else {
-		//#GOGP_IFDEF SLICE_TYPE
-		v.target = NewGOGPGlobalNamePrefixSlice()
-		//#GOGP_ELSE
-		v.target = new(GOGPREPRawElemType)
-		//#GOGP_ENDIF //SLICE_TYPE
+	if err := util.FiltNames(f.info.Names); err != nil { // verify name duplicate
+		return fmt.Errorf("flag %s.Names error: %s", f.info.LogicName, err.Error())
+	}
+	if err := util.FiltNames(f.info.EnvVars); err != nil { // verify EnvVars duplicate
+		return fmt.Errorf("flag %s.EnvVars error: %s", f.info.LogicName, err.Error())
 	}
 	return nil
 }
 
 // IsSet check if value was set
-func (v *GOGPGlobalNamePrefixFlag) IsSet() bool {
+func (f *GOGPGlobalNamePrefixFlag) IsSet() bool {
 	//#GOGP_IFDEF SLICE_TYPE
-	return v.target.hasBeenSet
+	return f.target.hasBeenSet
 	//#GOGP_ELSE
-	return v.info.HasBeenSet
+	return f.info.HasBeenSet
 	//#GOGP_ENDIF //SLICE_TYPE
 }
 
+//GetLogicName returns the logic name of the falg
+func (f *GOGPGlobalNamePrefixFlag) GetLogicName() string {
+	return f.info.LogicName
+}
+
+//GetValueName returns the value name of the falg
+func (f *GOGPGlobalNamePrefixFlag) GetValueName() string {
+	return f.info.ValueName
+}
+
+// Names returns the names of the flag
+func (f *GOGPGlobalNamePrefixFlag) Names() []string {
+	return f.info.Names
+}
+
+// IsRequired returns whether or not the flag is required
+func (f *GOGPGlobalNamePrefixFlag) IsRequired() bool {
+	return f.Required
+}
+
+// TakesValue returns true of the flag takes a value, otherwise false
+func (f *GOGPGlobalNamePrefixFlag) TakesValue() bool {
+	return false
+}
+
+// GetUsage returns the usage string for the flag
+func (f *GOGPGlobalNamePrefixFlag) GetUsage() string {
+	return f.info.Usage
+}
+
+// GetValue returns the flags value as string representation and an empty
+// string if the flag takes no value at all.
+func (f *GOGPGlobalNamePrefixFlag) GetValue() string {
+	return ""
+}
+
 // Apply coordinate the value to flagset
-func (v *GOGPGlobalNamePrefixFlag) Apply(set *flag.FlagSet) error {
+func (f *GOGPGlobalNamePrefixFlag) Apply(set *flag.FlagSet) error {
 	return nil
 }
 
 // String return the value for view
-func (v *GOGPGlobalNamePrefixFlag) String() string {
+func (f *GOGPGlobalNamePrefixFlag) String() string {
 	return ""
 }
 
 // ValidateValues verify if all values was valid
-func (v *GOGPGlobalNamePrefixFlag) ValidateValues() error {
+func (f *GOGPGlobalNamePrefixFlag) ValidateValues() error {
 	//#GOGP_IFDEF SLICE_TYPE
-	return v.validateValues(GOGPREPSliceValue)
+	return f.validateValues(GOGPREPSliceValue)
 	//#GOGP_ELSE
-	return v.validateValues(*v.target)
+	return f.validateValues(*f.target)
 	//#GOGP_ENDIF //SLICE_TYPE
-
 }
 
 // Info returns parsed info of this flag
@@ -299,56 +340,55 @@ func (v *GOGPGlobalNamePrefixFlag) Info() *impl.FlagInfo {
 }
 
 // Reset clean the last parsed value of this flag
-func (v *GOGPGlobalNamePrefixFlag) Reset() {
+func (f *GOGPGlobalNamePrefixFlag) Reset() {
 	//#GOGP_IFDEF SLICE_TYPE
-	v.target.Reset()
+	f.target.Reset()
 	//#GOGP_ELSE
 	var t GOGPREPElemType
-	*v.target = t
+	*f.target = t
 	//#GOGP_ENDIF //SLICE_TYPE
-	v.info.HasBeenSet = false
+	f.info.HasBeenSet = false
 }
 
 // for default value verify
-func (v *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error {
+func (f *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error {
 	//#GOGP_IFDEF SLICE_TYPE
 	for _, val := range values.slice {
-		if err := v.validValue(val); err != nil {
+		if err := f.validValue(val); err != nil {
 			return err
 		}
 	}
 	return nil
 	//#GOGP_ELSE
-	return v.validValue(GOGPREPSingleValue)
+	return f.validValue(GOGPREPSingleValue)
 	//#GOGP_ENDIF //SLICE_TYPE
 }
 
 // check if value if valid for this flag
-func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
-	f := &v.info
-	if len(v.Enums) > 0 {
+func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
+	if len(f.Enums) > 0 {
 		found := false
-		for _, v := range v.Enums {
+		for _, v := range f.Enums {
 			if value == v {
 				found = true
 				break
 			}
 		}
 		if !found {
-			return fmt.Errorf("flag %s value %v out of Enums: %v", f.LogicName, value, v.Enums)
+			return fmt.Errorf("flag %s value %v out of Enums: %v", f.info.LogicName, value, f.Enums)
 		}
 	}
-	if len(v.Ranges) > 0 {
+	if len(f.Ranges) > 0 {
 		found := false
-		for i := 0; i < len(v.Ranges); i += 2 {
-			min, max := v.Ranges[i], v.Ranges[i+1]
+		for i := 0; i < len(f.Ranges); i += 2 {
+			min, max := f.Ranges[i], f.Ranges[i+1]
 			if value >= min && value < max {
 				found = true
 				break
 			}
 		}
 		if !found {
-			return fmt.Errorf("flag %s value %v out of Ranges: %v", f.LogicName, value, v.Enums)
+			return fmt.Errorf("flag %s value %v out of Ranges: %v", f.info.LogicName, value, f.Enums)
 		}
 	}
 	return nil

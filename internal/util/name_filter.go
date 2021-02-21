@@ -1,5 +1,9 @@
 package util
 
+import (
+	"fmt"
+)
+
 // NameFilter filt duplicate names
 type NameFilter struct {
 	mp map[string]struct{}
@@ -15,6 +19,16 @@ func NewNameFilter() *NameFilter {
 // Add try to add a new name, it return false if name already exists
 func (f *NameFilter) Add(name string) bool {
 	return f.add(name, false)
+}
+
+// AddBatch try to add a batch name, it return error if one name already exists
+func (f *NameFilter) AddBatch(names []string) error {
+	for _, name := range names {
+		if !f.Add(name) {
+			return fmt.Errorf(`duplicate <%s>`, name)
+		}
+	}
+	return nil
 }
 
 // Exists check if name was already exists
@@ -40,4 +54,11 @@ func (f *NameFilter) add(name string, checkOnly bool) bool {
 		return true
 	}
 	return false
+}
+
+// FiltNames checks if names has duplicate ones
+func FiltNames(names []string) error {
+	var f NameFilter
+	f.Reset()
+	return f.AddBatch(names)
 }
