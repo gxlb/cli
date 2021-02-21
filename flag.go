@@ -22,16 +22,17 @@ var (
 
 // Flag
 type Flag interface {
-	fmt.Stringer               // Show flag help info
-	Init() error               // init parsing of this flag
-	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
-	IsSet() bool               // check if the flag value was set
-	Info() *FlagInfo           // parsed info of this flag
-	Reset()                    // reset the flag value
+	fmt.Stringer                         // Show flag help info
+	Init(namegen *NameGenenerator) error // init parsing of this flag
+	Apply(*flag.FlagSet) error           // Apply Flag settings to the given flag set
+	IsSet() bool                         // check if the flag value was set
+	Info() *FlagInfo                     // parsed info of this flag
+	Reset()                              // reset the flag value
 }
 
 // FlagInfo
 type FlagInfo struct {
+	DispName    string   // DispName is display name of the flag
 	Name        string   // Name of this flag(auto generate if not defined)
 	LogicName   string   // logic name of the flag
 	Names       []string // name+aliases of the flag

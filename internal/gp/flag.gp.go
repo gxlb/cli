@@ -49,16 +49,17 @@ func (this GOGPValueType) Show() string              { return "" } //
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice
 type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
 type Flag interface {
-	fmt.Stringer               // Show flag help info
-	Init() error               // init parsing of this flag
-	Apply(*flag.FlagSet) error // Apply Flag settings to the given flag set
-	IsSet() bool               // check if the flag value was set
-	Info() *FlagInfo           // parsed info of this flag
-	Reset()                    // reset the flag value
+	fmt.Stringer                         // Show flag help info
+	Init(namegen *NameGenenerator) error // init parsing of this flag
+	Apply(*flag.FlagSet) error           // Apply Flag settings to the given flag set
+	IsSet() bool                         // check if the flag value was set
+	Info() *FlagInfo                     // parsed info of this flag
+	Reset()                              // reset the flag value
 }
 
 type FlagInfo struct {
-	Name        string
+	DispName    string   // DispName is display name of the flag
+	Name        string   // Name of this flag(auto generate if not defined)
 	LogicName   string   // logic name of the flag
 	Names       []string // name+aliases of the flag
 	Usage       string   // usage string
@@ -70,6 +71,12 @@ type FlagInfo struct {
 	HasBeenSet  bool     // if the value was set
 	DefaultText string   // Default value in help info
 }
+
+type NameGenenerator int
+
+func (g *NameGenenerator) Reset()                          {}
+func (g *NameGenenerator) NextName() string                { return "" }
+func (g *NameGenenerator) GetOrGenName(name string) string { return "" }
 
 const maxSliceLen = 100
 
@@ -121,18 +128,27 @@ func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
 	return n
 }
 
-// TODO: Consistently have specific Set function for Int64 and Float64 ?
+// Append directly append values to the list of values
+func (s *GOGPGlobalNamePrefixSlice) Append(values ...GOGPValueType) {
+	s.setValues(false, values)
+}
+
+// Append directly overite values to the list of values
+func (s *GOGPGlobalNamePrefixSlice) SetValues(values ...GOGPValueType) {
+	s.setValues(true, values)
+}
+
 // Append directly adds values to the list of values
-func (s *GOGPGlobalNamePrefixSlice) Append(value ...GOGPValueType) {
-	if !s.hasBeenSet {
-		s.slice = []GOGPValueType{}
+func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValueType) {
+	if !s.hasBeenSet || overwrite {
+		s.Reset()
 		s.hasBeenSet = true
 	}
 
-	s.slice = append(s.slice, value...)
+	s.slice = append(s.slice, values...)
 }
 
-// Set parses the value into an integer and appends it to the list of values
+// Set parses the value and appends it to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 
 	if strings.HasPrefix(value, slPfx) {
@@ -161,9 +177,13 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 	return nil
 }
 
-// Reset clean the last parsed value of this slice
+// Reset clean the last parsed values of this slice
 func (s *GOGPGlobalNamePrefixSlice) Reset() {
-	s.slice = s.slice[:0]
+	if s.slice == nil {
+		s.slice = []GOGPValueType{}
+	} else {
+		s.slice = s.slice[:0]
+	}
 	s.hasBeenSet = false
 }
 
@@ -231,7 +251,7 @@ type GOGPGlobalNamePrefixFlag struct {
 }
 
 // Init verify and init the value by ower flag
-func (v *GOGPGlobalNamePrefixFlag) Init() error {
+func (v *GOGPGlobalNamePrefixFlag) Init(namegen *NameGenenerator) error {
 	v.info.Flag = v
 	v.info.EnvVars = v.EnvVars
 	v.info.Usage = v.Usage
@@ -240,28 +260,33 @@ func (v *GOGPGlobalNamePrefixFlag) Init() error {
 	v.info.Hidden = v.Hidden
 	v.info.FilePath = v.FilePath
 	v.info.LogicName = logicName(v.LogicName)
-	v.info.Name = v.Name //TODO: deal with noname
+	v.info.Name = namegen.GetOrGenName(v.Name)
+	v.info.HasBeenSet = false
+	v.info.DispName = v.Name
 	mergeNames(v.Name, v.Aliases, &v.info.Names)
 
 	if l := len(v.Enums); l > maxSliceLen {
-		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.LogicName, l, maxSliceLen)
+		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.DispName, l, maxSliceLen)
 	}
 	if l := len(v.Ranges); l > 0 {
 		if l > maxSliceLen {
-			return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.LogicName, l, maxSliceLen)
+			return fmt.Errorf("flag %s.Ranges too long: %d/%d", v.info.DispName, l, maxSliceLen)
 		}
 		if l%2 != 0 {
-			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", v.info.LogicName, l)
+			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", v.info.DispName, l)
 		}
 		for i := 0; i < l; i += 2 {
 			min, max := v.Ranges[i], v.Ranges[i+1]
 			if valid := min <= max; !valid {
-				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", v.info.LogicName, min, max)
+				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", v.info.DispName, min, max)
 			}
 		}
 	}
 	if v.Name == "" && v.LogicName == "" {
 		return fmt.Errorf("flag missing both Name & LogicName: %v", v)
+	}
+	if v.Name == "" && len(v.Aliases) > 0 {
+
 	}
 
 	if err := v.validateValues(v.Default); err != nil {
@@ -368,6 +393,8 @@ func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	}
 	return nil
 }
+
+var _ Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
