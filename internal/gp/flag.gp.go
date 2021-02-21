@@ -16,6 +16,7 @@ import (
 	"flag"
 	"fmt"
 
+	"cli/internal/impl"
 	"cli/internal/util"
 
 	//#GOGP_IFDEF SLICE_TYPE
@@ -50,44 +51,11 @@ func (this GOGPValueType) Show() string              { return "" } //
 ////////////////////////////////////////////////////////////////////////////////
 type GOGPREPElemType = GOGPGlobalNamePrefixSlice
 type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
-type Flag interface {
-	fmt.Stringer                              // Show flag help info
-	Init(namegen *util.NameGenenerator) error // init parsing of this flag
-	Apply(*flag.FlagSet) error                // Apply Flag settings to the given flag set
-	IsSet() bool                              // check if the flag value was set
-	Info() *FlagInfo                          // parsed info of this flag
-	Reset()                                   // reset the flag value
-}
-
-type FlagInfo struct {
-	DispName    string   // DispName is display name of the flag
-	Name        string   // Name of this flag(auto generate if not defined)
-	LogicName   string   // logic name of the flag
-	Names       []string // name+aliases of the flag
-	Usage       string   // usage string
-	Required    bool     // if required
-	Hidden      bool     // hidden this flag
-	EnvVars     []string // environment values
-	FilePath    string   // file path
-	Flag        Flag     // value reference of this flag
-	HasBeenSet  bool     // if the value was set
-	DefaultText string   // Default value in help info
-}
-
-const maxSliceLen = 100
 
 var GOGPREPSingleValue GOGPValueType
 var GOGPREPSliceValue GOGPGlobalNamePrefixSlice
-var slPfx = "xxx"
 
-func GOGPREPParseString(string) (GOGPValueType, error) {
-	var s GOGPValueType
-	return s, nil
-}
-func flagSplitMultiValues(val string) []string                     { return nil }
-func mergeNames(name string, aliases []string, out *[]string) bool { return false }
-func logicName(logicName string) string                            { return "" }
-func dispName(name, logicName string) string                       { return "" }
+func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
 
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
@@ -142,15 +110,15 @@ func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValue
 // Set parses the value and appends it to the list of values
 func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 
-	if strings.HasPrefix(value, slPfx) {
+	if strings.HasPrefix(value, impl.SerializedPrefix) {
 		// Deserializing assumes overwrite
-		_ = json.Unmarshal([]byte(strings.Replace(value, slPfx, "", 1)), &s.slice)
+		_ = json.Unmarshal([]byte(strings.Replace(value, impl.SerializedPrefix, "", 1)), &s.slice)
 		s.hasBeenSet = true
 		return nil
 	}
 
 	//accept multi values for slice flags
-	for _, val := range flagSplitMultiValues(value) {
+	for _, val := range impl.FlagSplitMultiValues(value) {
 		value := strings.TrimSpace(val)
 		tmp, err := GOGPREPParseString(value)
 		if err != nil {
@@ -186,7 +154,7 @@ func (s *GOGPGlobalNamePrefixSlice) String() string {
 // Serialize allows GOGPGlobalNamePrefixSlice to fulfill Serializer
 func (s *GOGPGlobalNamePrefixSlice) Serialize() string {
 	jsonBytes, _ := json.Marshal(s.slice)
-	return fmt.Sprintf("%s%s", slPfx, string(jsonBytes))
+	return fmt.Sprintf("%s%s", impl.SerializedPrefix, string(jsonBytes))
 }
 
 // Value returns the slice of ints set by this flag
@@ -231,14 +199,14 @@ type GOGPGlobalNamePrefixFlag struct {
 	//
 	Target      *GOGPREPElemType // Target value pointer outside
 	Default     GOGPREPElemType  // Default value
-	DefaultText string           // Default value in help info
+	DefaultText string           // Default value display in help info
 	Enums       []GOGPValueType  // Enumeration of valid values
-	Ranges      []GOGPValueType  // {[min,max),[min,)...} ranges of valid values
+	Ranges      []GOGPValueType  // {[min,max),[min,max),...} ranges of valid values
 	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
 	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPElemType) if Target not set)
-	info   FlagInfo         // parsed info of this flag
+	info   impl.FlagInfo    // parsed info of this flag
 }
 
 // Init verify and init the value by ower flag
@@ -250,12 +218,13 @@ func (v *GOGPGlobalNamePrefixFlag) Init(namegen *util.NameGenenerator) error {
 	v.info.Required = v.Required
 	v.info.Hidden = v.Hidden
 	v.info.FilePath = v.FilePath
-	v.info.LogicName = logicName(v.LogicName)
+	v.info.LogicName = impl.FlagLogicName(v.LogicName)
 	v.info.Name = namegen.GetOrGenName(v.Name)
 	v.info.HasBeenSet = false
-	v.info.DispName = dispName(v.Name, v.LogicName)
-	mergeNames(v.Name, v.Aliases, &v.info.Names)
+	v.info.DispName = impl.FlagDispName(v.Name, v.LogicName)
+	impl.MergeNames(v.Name, v.Aliases, &v.info.Names)
 
+	maxSliceLen := impl.MaxSliceLen
 	if l := len(v.Enums); l > maxSliceLen {
 		return fmt.Errorf("flag %s.Enums too long: %d/%d", v.info.DispName, l, maxSliceLen)
 	}
@@ -325,7 +294,7 @@ func (v *GOGPGlobalNamePrefixFlag) ValidateValues() error {
 }
 
 // Info returns parsed info of this flag
-func (v *GOGPGlobalNamePrefixFlag) Info() *FlagInfo {
+func (v *GOGPGlobalNamePrefixFlag) Info() *impl.FlagInfo {
 	return &v.info
 }
 
@@ -385,7 +354,7 @@ func (v *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	return nil
 }
 
-var _ Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
+var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end

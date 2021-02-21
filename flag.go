@@ -1,52 +1,23 @@
 package cli
 
 import (
-	"flag"
-	"fmt"
 	"io/ioutil"
 	"regexp"
 	"strings"
 	"syscall"
-	"time"
 
-	"cli/internal/util"
+	"cli/internal/impl"
 )
 
-const (
-	defaultPlaceholder = "value"
-	maxSliceLen        = 100 //define max slice len to avoid low effect range of slice
-)
+// Flag is interface of a flag
+type Flag = impl.Flag
+
+// FlagInfo is parsed info of a flag
+type FlagInfo = impl.FlagInfo
 
 var (
-	slPfx           = fmt.Sprintf("sl:::%d:::", time.Now().UTC().UnixNano())
 	commaWhitespace = regexp.MustCompile("[, ]+.*")
 )
-
-// Flag
-type Flag interface {
-	fmt.Stringer                              // Show flag help info
-	Init(namegen *util.NameGenenerator) error // init parsing of this flag
-	Apply(*flag.FlagSet) error                // Apply Flag settings to the given flag set
-	IsSet() bool                              // check if the flag value was set
-	Info() *FlagInfo                          // parsed info of this flag
-	Reset()                                   // reset the flag value
-}
-
-// FlagInfo
-type FlagInfo struct {
-	DispName    string   // DispName is display name of the flag
-	Name        string   // Name of this flag(auto generate if not defined)
-	LogicName   string   // logic name of the flag
-	Names       []string // name+aliases of the flag
-	Usage       string   // usage string
-	Required    bool     // if required
-	Hidden      bool     // hidden this flag
-	EnvVars     []string // environment values
-	FilePath    string   // file path
-	Flag        Flag     // value reference of this flag
-	HasBeenSet  bool     // if the value was set
-	DefaultText string   // Default value in help info
-}
 
 func flagFromEnvOrFile(envVars []string, filePath string) (val string, ok bool) {
 	for _, envVar := range envVars {
@@ -61,34 +32,4 @@ func flagFromEnvOrFile(envVars []string, filePath string) (val string, ok bool) 
 		}
 	}
 	return "", false
-}
-
-func flagSplitMultiValues(val string) []string {
-	return strings.Split(val, ",")
-}
-
-// merge name+aliases into out
-func mergeNames(name string, aliases []string, out *[]string) bool {
-	if name != "" { //ignore noname merge
-		a := *out
-		if len(a) == 0 || a[0] != name {
-			*out = append([]string{name}, aliases...)
-			return true
-		}
-	}
-	return false
-}
-
-func logicName(logicName string) string {
-	if logicName != "" {
-		return logicName
-	}
-	return defaultPlaceholder
-}
-
-func dispName(name, logicName string) string {
-	if logicName != "" {
-		return logicName
-	}
-	return name
 }
