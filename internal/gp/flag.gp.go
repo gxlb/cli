@@ -70,8 +70,8 @@ type GOGPGlobalNamePrefix struct {
 	hasBeenSet bool
 }
 
-// NewGOGPGlobalNamePrefixSlice makes an *GOGPGlobalNamePrefixSlice with default values
-func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePrefix {
+// NewGOGPGlobalNamePrefix makes an *NewGOGPGlobalNamePrefix with default values
+func NewGOGPGlobalNamePrefix(defaults ...GOGPValueType) *GOGPGlobalNamePrefix {
 	return &GOGPGlobalNamePrefix{
 		slice:      append([]GOGPValueType{}, defaults...),
 		hasBeenSet: false,
@@ -229,7 +229,7 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		f.target = f.Target
 	} else {
 		//#GOGP_IFDEF SLICE_TYPE
-		f.target = NewGOGPGlobalNamePrefixSlice()
+		f.target = NewGOGPGlobalNamePrefix()
 		//#GOGP_ELSE
 		f.target = new(GOGPREPRawElemType)
 		//#GOGP_ENDIF //SLICE_TYPE
