@@ -49,12 +49,12 @@ func (this GOGPValueType) Show() string              { return "" } //
 
 //#GOGP_IGNORE_BEGIN //fake defines
 ////////////////////////////////////////////////////////////////////////////////
-type GOGPREPElemType = GOGPGlobalNamePrefixSlice
-type GOGPREPRawElemType = GOGPGlobalNamePrefixSlice
+type GOGPREPElemType = GOGPGlobalNamePrefix
+type GOGPREPRawElemType = GOGPGlobalNamePrefix
 type Context int
 
 var GOGPREPSingleValue GOGPValueType
-var GOGPREPSliceValue GOGPGlobalNamePrefixSlice
+var GOGPREPSliceValue GOGPGlobalNamePrefix
 
 func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
 
@@ -65,22 +65,22 @@ func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
 var _ = (*strconv.NumError)(nil) //avoid compile error
 
 // GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
-type GOGPGlobalNamePrefixSlice struct {
+type GOGPGlobalNamePrefix struct {
 	slice      []GOGPValueType
 	hasBeenSet bool
 }
 
 // NewGOGPGlobalNamePrefixSlice makes an *GOGPGlobalNamePrefixSlice with default values
-func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePrefixSlice {
-	return &GOGPGlobalNamePrefixSlice{
+func NewGOGPGlobalNamePrefixSlice(defaults ...GOGPValueType) *GOGPGlobalNamePrefix {
+	return &GOGPGlobalNamePrefix{
 		slice:      append([]GOGPValueType{}, defaults...),
 		hasBeenSet: false,
 	}
 }
 
 // clone allocate a copy of self object
-func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
-	n := &GOGPGlobalNamePrefixSlice{
+func (s *GOGPGlobalNamePrefix) clone() *GOGPGlobalNamePrefix {
+	n := &GOGPGlobalNamePrefix{
 		slice:      append([]GOGPValueType{}, s.slice...),
 		hasBeenSet: s.hasBeenSet,
 	}
@@ -88,16 +88,16 @@ func (s *GOGPGlobalNamePrefixSlice) clone() *GOGPGlobalNamePrefixSlice {
 }
 
 // AppendValues directly append values to the list of values
-func (s *GOGPGlobalNamePrefixSlice) AppendValues(values ...GOGPValueType) {
+func (s *GOGPGlobalNamePrefix) AppendValues(values ...GOGPValueType) {
 	s.setValues(false, values)
 }
 
 // SetValues directly overite values to the list of values
-func (s *GOGPGlobalNamePrefixSlice) SetValues(values ...GOGPValueType) {
+func (s *GOGPGlobalNamePrefix) SetValues(values ...GOGPValueType) {
 	s.setValues(true, values)
 }
 
-func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValueType) {
+func (s *GOGPGlobalNamePrefix) setValues(overwrite bool, values []GOGPValueType) {
 	if !s.hasBeenSet || overwrite {
 		s.Reset()
 		s.hasBeenSet = true
@@ -107,7 +107,7 @@ func (s *GOGPGlobalNamePrefixSlice) setValues(overwrite bool, values []GOGPValue
 }
 
 // Set parses the value and appends to the list of values
-func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
+func (s *GOGPGlobalNamePrefix) Set(value string) error {
 
 	if strings.HasPrefix(value, impl.SerializedPrefix) {
 		// Deserializing assumes overwrite
@@ -136,7 +136,7 @@ func (s *GOGPGlobalNamePrefixSlice) Set(value string) error {
 }
 
 // Reset clean the last parsed values of this slice
-func (s *GOGPGlobalNamePrefixSlice) Reset() {
+func (s *GOGPGlobalNamePrefix) Reset() {
 	if s.slice == nil {
 		s.slice = []GOGPValueType{}
 	} else {
@@ -146,31 +146,31 @@ func (s *GOGPGlobalNamePrefixSlice) Reset() {
 }
 
 // String returns a readable representation of this value (for usage defaults)
-func (s *GOGPGlobalNamePrefixSlice) String() string {
+func (s *GOGPGlobalNamePrefix) String() string {
 	return fmt.Sprintf("%#v", s.slice)
 }
 
 // Serialize allows GOGPGlobalNamePrefixSlice to fulfill Serializer
-func (s *GOGPGlobalNamePrefixSlice) Serialize() string {
+func (s *GOGPGlobalNamePrefix) Serialize() string {
 	jsonBytes, _ := json.Marshal(s.slice)
 	return fmt.Sprintf("%s%s", impl.SerializedPrefix, string(jsonBytes))
 }
 
 // Value returns the slice of ints set by this flag
-func (s *GOGPGlobalNamePrefixSlice) Value() []GOGPValueType {
+func (s *GOGPGlobalNamePrefix) Value() []GOGPValueType {
 	return s.slice
 }
 
 // Get returns the slice set by this flag
-func (s *GOGPGlobalNamePrefixSlice) Get() interface{} {
+func (s *GOGPGlobalNamePrefix) Get() interface{} {
 	return *s
 }
 
-//#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
-//#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixSlice)
+//#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefix)
+//#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefix)
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
 //#GOGP_REPLACE(GOGPREPSliceValue, f.target)
-//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixSlice)
+//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefix)
 
 //#GOGP_ELSE //SLICE_TYPE
 
@@ -242,8 +242,21 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 	if f.Name == "" && len(f.Aliases) > 0 { // Noname ones must without Aliases
 		return fmt.Errorf("flag %s missing name, but has Aliases %v", f.info.LogicName, f.Aliases)
 	}
-	if l := len(f.Enums); l > maxSliceLen { // Enums length check
-		return fmt.Errorf("flag %s.Enums too long: %d/%d", f.info.LogicName, l, maxSliceLen)
+	if l := len(f.Enums); l > 0 { // Enums length check
+		if l > maxSliceLen {
+			return fmt.Errorf("flag %s.Enums too long: %d/%d", f.info.LogicName, l, maxSliceLen)
+		}
+
+		if l > 1 {
+			var filter = make(map[GOGPValueType]struct{})
+			for _, v := range f.Enums {
+				if i, ok := filter[v]; !ok {
+					filter[v] = struct{}{}
+				} else {
+					return fmt.Errorf("flag %s.Enums error: duplicate %v at %d", f.info.LogicName, v, i)
+				}
+			}
+		}
 	}
 	if l := len(f.Ranges); l > 0 { // Ranges length check and [min,max) pair check
 		if l > maxSliceLen {
@@ -255,7 +268,13 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		for i := 0; i < l; i += 2 {
 			min, max := f.Ranges[i], f.Ranges[i+1]
 			if valid := min <= max; !valid {
-				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%d,%d)", f.info.LogicName, min, max)
+				return fmt.Errorf("flag %s.Ranges doesn't match [min,max): (%v,%v)", f.info.LogicName, min, max)
+			}
+			for j := 0; j < i; j += 2 { //check range overlapping
+				m, n := f.Ranges[j], f.Ranges[j+1]
+				if m >= min && m < max || n >= min && n < max {
+					return fmt.Errorf("flag %s.Ranges %d~[%v,%v) overlapping %d~[%v,%v) ", f.info.LogicName, i, min, max, j, m, n)
+				}
 			}
 		}
 	}
