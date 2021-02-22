@@ -52,6 +52,7 @@ func (this GOGPValueType) Show() string              { return "" } //
 type GOGPREPElemType = GOGPGlobalNamePrefix
 type GOGPREPRawElemType = GOGPGlobalNamePrefix
 type Context int
+type GOGPREValueType = []GOGPValueType
 
 var GOGPREPSingleValue GOGPValueType
 var GOGPREPSliceValue GOGPGlobalNamePrefix
@@ -170,12 +171,14 @@ func (s *GOGPGlobalNamePrefix) Get() interface{} {
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
 //#GOGP_REPLACE(GOGPREPSliceValue, f.target)
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefix)
+//#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
 
 //#GOGP_ELSE //SLICE_TYPE
 
 //#GOGP_REPLACE(GOGPREPSingleValue, values)
 //#GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
+//#GOGP_REPLACE(GOGPREValueType, GOGPValueType)
 
 //#GOGP_ENDIF //SLICE_TYPE
 
@@ -328,8 +331,7 @@ func (f *GOGPGlobalNamePrefixFlag) GetUsage() string {
 	return f.info.Usage
 }
 
-// GetValue returns the flags value as string representation and an empty
-// string if the flag takes no value at all.
+// GetValue returns the flags value as string representation.
 func (f *GOGPGlobalNamePrefixFlag) GetValue() string {
 	return ""
 }
@@ -344,7 +346,7 @@ func (f *GOGPGlobalNamePrefixFlag) String() string {
 	return ""
 }
 
-// ValidateValues verify if all values was valid
+// ValidateValues verify if all values are valid
 func (f *GOGPGlobalNamePrefixFlag) ValidateValues() error {
 	//#GOGP_IFDEF SLICE_TYPE
 	return f.validateValues(GOGPREPSliceValue)
@@ -413,16 +415,15 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	return nil
 }
 
-// // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag, returns
-// // nil if not found
-// func (c *Context) GOGPGlobalNamePrefix(name string) []GOGPValueType {
+// // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag
+// func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
 // 	if fs := lookupFlagSet(name, c); fs != nil {
 // 		return lookupGOGPREPRawElemType(name, fs)
 // 	}
 // 	return nil
 // }
 
-// func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) []GOGPValueType {
+// func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType {
 // 	f := set.Lookup(name)
 // 	if f != nil {
 // 		if slice, ok := f.Value.(*GOGPGlobalNamePrefix); ok {
