@@ -62,7 +62,6 @@ func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
 //#GOGP_IGNORE_END //fake defines
 
 //#GOGP_IFDEF SLICE_TYPE
-var _ = (*strconv.NumError)(nil) //avoid compile error
 
 // GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
 type GOGPGlobalNamePrefix struct {
@@ -434,6 +433,9 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 // }
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
+//#GOGP_IFDEF SLICE_TYPE
+var _ = (*strconv.NumError)(nil) //avoid compile error
+//#GOGP_ENDIF //SLICE_TYPE
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
