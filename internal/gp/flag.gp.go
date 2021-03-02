@@ -289,6 +289,8 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		if l%2 != 0 {
 			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", f.info.LogicName, l)
 		}
+		//#GOGP_IFDEF SW_NO_CMP
+		//#GOGP_ELSE
 		for i := 0; i < l; i += 2 {
 			min, max := f.Ranges[i], f.Ranges[i+1]
 			if valid := min <= max; !valid {
@@ -301,6 +303,7 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 				}
 			}
 		}
+		//#GOGP_ENDIF //SW_NO_CMP
 	}
 	if err := f.validateValues(f.Default); err != nil { // verify default values
 		return fmt.Errorf("default value invalid: %s", err.Error())
@@ -409,6 +412,9 @@ func (f *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error 
 
 // check if value if valid for this flag
 func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
+	//#GOGP_IFDEF SW_NO_CMP
+	return nil
+	//#GOGP_ELSE
 	if len(f.Enums) > 0 {
 		found := false
 		for _, v := range f.Enums {
@@ -435,6 +441,7 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 		}
 	}
 	return nil
+	//#GOGP_ENDIF //SW_NO_CMP
 }
 
 // // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag
