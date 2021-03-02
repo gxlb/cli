@@ -223,8 +223,11 @@ type GOGPGlobalNamePrefixFlag struct {
 	Target      *GOGPREPElemType // Target value pointer outside
 	Default     GOGPREPElemType  // Default value
 	DefaultText string           // Default value display in help info
-	Enums       []GOGPValueType  // Enumeration of valid values
-	Ranges      []GOGPValueType  // {[min,max),[min,max),...} ranges of valid values
+	//#GOGP_IFDEF GOGP_IfNoCompare
+	//#GOGP_ELSE
+	Enums  []GOGPValueType // Enumeration of valid values
+	Ranges []GOGPValueType // {[min,max),[min,max),...} ranges of valid values
+	//#GOGP_ENDIF //GOGP_IfNoCompare
 	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
@@ -259,13 +262,15 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
 	}
 
-	maxSliceLen := impl.MaxSliceLen
 	if f.Name == "" && f.LogicName == "" { // Name & LogicName cannot both missing
 		return fmt.Errorf("flag missing both Name & LogicName: %v", f)
 	}
 	if f.Name == "" && len(f.Aliases) > 0 { // Noname ones must without Aliases
 		return fmt.Errorf("flag %s missing name, but has Aliases %v", f.info.LogicName, f.Aliases)
 	}
+	//#GOGP_IFDEF GOGP_IfNoCompare
+	//#GOGP_ELSE
+	maxSliceLen := impl.MaxSliceLen
 	if l := len(f.Enums); l > 0 { // Enums length check
 		if l > maxSliceLen {
 			return fmt.Errorf("flag %s.Enums too long: %d/%d", f.info.LogicName, l, maxSliceLen)
@@ -289,8 +294,7 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		if l%2 != 0 {
 			return fmt.Errorf("flag %s.Ranges doesn't match [min,max) pairs: %d", f.info.LogicName, l)
 		}
-		//#GOGP_IFDEF GOGP_IfNoCompare
-		//#GOGP_ELSE
+
 		for i := 0; i < l; i += 2 {
 			min, max := f.Ranges[i], f.Ranges[i+1]
 			if valid := min <= max; !valid {
@@ -303,8 +307,8 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 				}
 			}
 		}
-		//#GOGP_ENDIF //GOGP_IfNoCompare
 	}
+	//#GOGP_ENDIF //GOGP_IfNoCompare
 	if err := f.validateValues(f.Default); err != nil { // verify default values
 		return fmt.Errorf("default value invalid: %s", err.Error())
 	}
