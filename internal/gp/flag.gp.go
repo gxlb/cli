@@ -41,11 +41,11 @@ import (
 	"cli/internal/impl"
 	"cli/internal/util"
 
-	//#GOGP_IFDEF SLICE_TYPE
+	//#GOGP_IFDEF SW_SLICE_TYPE
 	"encoding/json"
 	"strconv"
 	"strings"
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ENDIF //SW_SLICE_TYPE
 )
 
 //#GOGP_REQUIRE(github.com/gxlb/gogp/lib/fakedef,_)
@@ -84,7 +84,7 @@ func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
 
-//#GOGP_IFDEF SLICE_TYPE
+//#GOGP_IFDEF SW_SLICE_TYPE
 
 // GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
 type GOGPGlobalNamePrefix struct {
@@ -195,14 +195,14 @@ func (s *GOGPGlobalNamePrefix) Get() interface{} {
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefix)
 //#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
 
-//#GOGP_ELSE //SLICE_TYPE
+//#GOGP_ELSE //SW_SLICE_TYPE
 
 //#GOGP_REPLACE(GOGPREPSingleValue, values)
 //#GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
 //#GOGP_REPLACE(GOGPREValueType, GOGPValueType)
 
-//#GOGP_ENDIF //SLICE_TYPE
+//#GOGP_ENDIF //SW_SLICE_TYPE
 
 // GOGPGlobalNamePrefixFlag define a value of type GOGPREPElemType
 type GOGPGlobalNamePrefixFlag struct {
@@ -252,11 +252,11 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 	if f.Target != nil {
 		f.target = f.Target
 	} else {
-		//#GOGP_IFDEF SLICE_TYPE
+		//#GOGP_IFDEF SW_SLICE_TYPE
 		f.target = NewGOGPGlobalNamePrefix()
 		//#GOGP_ELSE
 		f.target = new(GOGPREPRawElemType)
-		//#GOGP_ENDIF //SLICE_TYPE
+		//#GOGP_ENDIF //SW_SLICE_TYPE
 	}
 
 	maxSliceLen := impl.MaxSliceLen
@@ -319,11 +319,11 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 
 // IsSet check if value was set
 func (f *GOGPGlobalNamePrefixFlag) IsSet() bool {
-	//#GOGP_IFDEF SLICE_TYPE
+	//#GOGP_IFDEF SW_SLICE_TYPE
 	return f.target.hasBeenSet
 	//#GOGP_ELSE
 	return f.info.HasBeenSet
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ENDIF //SW_SLICE_TYPE
 }
 
 //GetLogicName returns the logic name of the falg
@@ -373,11 +373,11 @@ func (f *GOGPGlobalNamePrefixFlag) String() string {
 
 // ValidateValues verify if all values are valid
 func (f *GOGPGlobalNamePrefixFlag) ValidateValues() error {
-	//#GOGP_IFDEF SLICE_TYPE
+	//#GOGP_IFDEF SW_SLICE_TYPE
 	return f.validateValues(GOGPREPSliceValue)
 	//#GOGP_ELSE
 	return f.validateValues(*f.target)
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ENDIF //SW_SLICE_TYPE
 }
 
 // Info returns parsed info of this flag, the returned object must READ-ONLY
@@ -387,18 +387,18 @@ func (v *GOGPGlobalNamePrefixFlag) Info() *impl.FlagInfo {
 
 // Reset clean the last parsed value of this flag
 func (f *GOGPGlobalNamePrefixFlag) Reset() {
-	//#GOGP_IFDEF SLICE_TYPE
+	//#GOGP_IFDEF SW_SLICE_TYPE
 	f.target.Reset()
 	//#GOGP_ELSE
 	var t GOGPREPElemType
 	*f.target = t
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ENDIF //SW_SLICE_TYPE
 	f.info.HasBeenSet = false
 }
 
 // for default value verify
 func (f *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error {
-	//#GOGP_IFDEF SLICE_TYPE
+	//#GOGP_IFDEF SW_SLICE_TYPE
 	for _, val := range values.slice {
 		if err := f.validValue(val); err != nil {
 			return err
@@ -407,7 +407,7 @@ func (f *GOGPGlobalNamePrefixFlag) validateValues(values GOGPREPElemType) error 
 	return nil
 	//#GOGP_ELSE
 	return f.validValue(GOGPREPSingleValue)
-	//#GOGP_ENDIF //SLICE_TYPE
+	//#GOGP_ENDIF //SW_SLICE_TYPE
 }
 
 // check if value if valid for this flag
@@ -463,9 +463,9 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 // }
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
-//#GOGP_IFDEF SLICE_TYPE
+//#GOGP_IFDEF SW_SLICE_TYPE
 var _ = (*strconv.NumError)(nil) //avoid compile error
-//#GOGP_ENDIF //SLICE_TYPE
+//#GOGP_ENDIF //SW_SLICE_TYPE
 
 //#GOGP_FILE_END
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
