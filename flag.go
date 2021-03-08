@@ -39,3 +39,8 @@ func flagFromEnvOrFile(envVars []string, filePath string) (val string, ok bool) 
 	}
 	return "", false
 }
+
+// Serializer is used to circumvent the limitations of flag.FlagSet.Set
+type Serializer interface {
+	Serialize() string
+}

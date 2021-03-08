@@ -25,7 +25,7 @@ package gp
 //#GOGP_FILE_BEGIN
 //#GOGP_IGNORE_BEGIN ///gogp_file_begin
 //
-///*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
+/*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
 //	 //If test or change .gp file required, comment it to modify and compile as normal go file
 //
 // This is a fake go code file
@@ -73,13 +73,15 @@ func (this GOGPValueType) Show() string              { return "" } //
 ////////////////////////////////////////////////////////////////////////////////
 type GOGPREPElemType = GOGPGlobalNamePrefix
 type GOGPREPRawElemType = GOGPGlobalNamePrefix
-type Context = impl.Context
+type Context int
 type GOGPREValueType = []GOGPValueType
 
 var GOGPREPSingleValue GOGPValueType
 var GOGPREPSliceValue GOGPGlobalNamePrefix
+var GOGP_REPZeroValue GOGPREValueType
 
-func GOGPREPParseString(string) (a GOGPValueType, e error) { return }
+func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
+func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
@@ -394,8 +396,7 @@ func (f *GOGPGlobalNamePrefixFlag) Reset() {
 	//#GOGP_IFDEF GOGP_IfIsSliceType
 	f.target.Reset()
 	//#GOGP_ELSE
-	var t GOGPREPElemType
-	*f.target = t
+	*f.target = GOGP_ZeroValue
 	//#GOGP_ENDIF //GOGP_IfIsSliceType
 	f.info.HasBeenSet = false
 }
@@ -448,23 +449,26 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 	//#GOGP_ENDIF //GOGP_IfNoCompare
 }
 
-// // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag
-// func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
-// 	if fs := impl.LookupFlagSet(name, c); fs != nil {
-// 		return lookupGOGPGlobalNamePrefix(name, fs)
-// 	}
-// 	return nil
-// }
+// GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag
+func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
+	if fs := lookupFlagSet(name, c); fs != nil {
+		return lookupGOGPGlobalNamePrefix(name, fs)
+	}
+	return GOGP_ZeroValue
+}
 
-// func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType {
-// 	f := set.Lookup(name)
-// 	if f != nil {
-// 		if slice, ok := f.Value.(*GOGPGlobalNamePrefix); ok {
-// 			return slice.Value()
-// 		}
-// 	}
-// 	return nil
-// }
+func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType {
+	f := set.Lookup(name)
+	if f != nil {
+		//#GOGP_IFDEF GOGP_IfIsSliceType
+		if slice, ok := f.Value.(*GOGPGlobalNamePrefix); ok {
+			return slice.Value()
+		}
+		//#GOGP_ELSE //GOGP_IfIsSliceType
+		//#GOGP_ENDIF //GOGP_IfIsSliceType
+	}
+	return GOGP_ZeroValue
+}
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
 //#GOGP_IFDEF GOGP_IfIsSliceType

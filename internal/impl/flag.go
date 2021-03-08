@@ -93,8 +93,3 @@ func FlagLogicName(name string, logicName string) string {
 	}
 	return name
 }
-
-// Serializer is used to circumvent the limitations of flag.FlagSet.Set
-type Serializer interface {
-	Serialize() string
-}

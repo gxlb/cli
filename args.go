@@ -1,4 +1,4 @@
-package impl
+package cli
 
 type Args interface {
 	// Get returns the nth argument, or else a blank string
