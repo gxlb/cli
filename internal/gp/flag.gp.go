@@ -25,7 +25,7 @@ package gp
 //#GOGP_FILE_BEGIN
 //#GOGP_IGNORE_BEGIN ///gogp_file_begin
 //
-/*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
+///*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
 //	 //If test or change .gp file required, comment it to modify and compile as normal go file
 //
 // This is a fake go code file
@@ -73,7 +73,7 @@ func (this GOGPValueType) Show() string              { return "" } //
 ////////////////////////////////////////////////////////////////////////////////
 type GOGPREPElemType = GOGPGlobalNamePrefix
 type GOGPREPRawElemType = GOGPGlobalNamePrefix
-type Context int
+type Context = impl.Context
 type GOGPREValueType = []GOGPValueType
 
 var GOGPREPSingleValue GOGPValueType
@@ -450,8 +450,8 @@ func (f *GOGPGlobalNamePrefixFlag) validValue(value GOGPValueType) error {
 
 // // GOGPGlobalNamePrefix looks up the value of a local GOGPGlobalNamePrefixFlag
 // func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
-// 	if fs := lookupFlagSet(name, c); fs != nil {
-// 		return lookupGOGPREPRawElemType(name, fs)
+// 	if fs := impl.LookupFlagSet(name, c); fs != nil {
+// 		return lookupGOGPGlobalNamePrefix(name, fs)
 // 	}
 // 	return nil
 // }
