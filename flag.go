@@ -5,23 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
-
-	"cli/internal/impl"
 )
-
-// Flag is interface of a flag
-type Flag = impl.Flag
-
-// FlagInfo is parsed info of a flag
-type FlagInfo = impl.FlagInfo
-
-// Timestamp wrap to satisfy golang's flag interface.
-type Timestamp = impl.Timestamp
-
-type Generic = impl.Generic
-
-// Timestamp constructor
-var NewTimestamp = impl.NewTimestamp
 
 var (
 	commaWhitespace = regexp.MustCompile("[, ]+.*")
