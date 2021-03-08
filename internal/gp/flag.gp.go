@@ -71,13 +71,13 @@ func (this GOGPValueType) Show() string              { return "" } //
 
 //#GOGP_IGNORE_BEGIN //fake defines
 ////////////////////////////////////////////////////////////////////////////////
-type GOGPREPElemType = GOGPGlobalNamePrefix
-type GOGPREPRawElemType = GOGPGlobalNamePrefix
+type GOGPREPElemType = GOGPGlobalNamePrefixValue
+type GOGPREPRawElemType = GOGPGlobalNamePrefixValue
 type Context int
 type GOGPREValueType = []GOGPValueType
 
 var GOGPREPSingleValue GOGPValueType
-var GOGPREPSliceValue GOGPGlobalNamePrefix
+var GOGPREPSliceValue GOGPGlobalNamePrefixValue
 var GOGP_REPZeroValue GOGPREValueType
 
 func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
@@ -89,22 +89,22 @@ func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 //#GOGP_IFDEF GOGP_IfIsSliceType
 
 // GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
-type GOGPGlobalNamePrefix struct {
+type GOGPGlobalNamePrefixValue struct {
 	slice      []GOGPValueType
 	hasBeenSet bool
 }
 
 // NewGOGPGlobalNamePrefix makes an *NewGOGPGlobalNamePrefix with default values
-func NewGOGPGlobalNamePrefix(defaults ...GOGPValueType) *GOGPGlobalNamePrefix {
-	return &GOGPGlobalNamePrefix{
+func NewGOGPGlobalNamePrefixValue(defaults ...GOGPValueType) *GOGPGlobalNamePrefixValue {
+	return &GOGPGlobalNamePrefixValue{
 		slice:      append([]GOGPValueType{}, defaults...),
 		hasBeenSet: false,
 	}
 }
 
 // clone allocate a copy of self object
-func (s *GOGPGlobalNamePrefix) clone() *GOGPGlobalNamePrefix {
-	n := &GOGPGlobalNamePrefix{
+func (s *GOGPGlobalNamePrefixValue) clone() *GOGPGlobalNamePrefixValue {
+	n := &GOGPGlobalNamePrefixValue{
 		slice:      append([]GOGPValueType{}, s.slice...),
 		hasBeenSet: s.hasBeenSet,
 	}
@@ -112,16 +112,16 @@ func (s *GOGPGlobalNamePrefix) clone() *GOGPGlobalNamePrefix {
 }
 
 // AppendValues directly append values to the list of values
-func (s *GOGPGlobalNamePrefix) AppendValues(values ...GOGPValueType) {
+func (s *GOGPGlobalNamePrefixValue) AppendValues(values ...GOGPValueType) {
 	s.setValues(false, values)
 }
 
 // SetValues directly overite values to the list of values
-func (s *GOGPGlobalNamePrefix) SetValues(values ...GOGPValueType) {
+func (s *GOGPGlobalNamePrefixValue) SetValues(values ...GOGPValueType) {
 	s.setValues(true, values)
 }
 
-func (s *GOGPGlobalNamePrefix) setValues(overwrite bool, values []GOGPValueType) {
+func (s *GOGPGlobalNamePrefixValue) setValues(overwrite bool, values []GOGPValueType) {
 	if !s.hasBeenSet || overwrite {
 		s.Reset()
 		s.hasBeenSet = true
@@ -131,7 +131,7 @@ func (s *GOGPGlobalNamePrefix) setValues(overwrite bool, values []GOGPValueType)
 }
 
 // Set parses the value and appends to the list of values
-func (s *GOGPGlobalNamePrefix) Set(value string) error {
+func (s *GOGPGlobalNamePrefixValue) Set(value string) error {
 
 	if strings.HasPrefix(value, impl.SerializedPrefix) {
 		// Deserializing assumes overwrite
@@ -160,7 +160,7 @@ func (s *GOGPGlobalNamePrefix) Set(value string) error {
 }
 
 // Reset clean the last parsed values of this slice
-func (s *GOGPGlobalNamePrefix) Reset() {
+func (s *GOGPGlobalNamePrefixValue) Reset() {
 	if s.slice == nil {
 		s.slice = []GOGPValueType{}
 	} else {
@@ -170,31 +170,31 @@ func (s *GOGPGlobalNamePrefix) Reset() {
 }
 
 // String returns a readable representation of this value (for usage defaults)
-func (s *GOGPGlobalNamePrefix) String() string {
+func (s *GOGPGlobalNamePrefixValue) String() string {
 	return fmt.Sprintf("%#v", s.slice)
 }
 
 // Serialize allows GOGPGlobalNamePrefixSlice to fulfill Serializer
-func (s *GOGPGlobalNamePrefix) Serialize() string {
+func (s *GOGPGlobalNamePrefixValue) Serialize() string {
 	jsonBytes, _ := json.Marshal(s.slice)
 	return fmt.Sprintf("%s%s", impl.SerializedPrefix, string(jsonBytes))
 }
 
 // Value returns the slice of ints set by this flag
-func (s *GOGPGlobalNamePrefix) Value() []GOGPValueType {
+func (s *GOGPGlobalNamePrefixValue) Value() []GOGPValueType {
 	return s.slice
 }
 
 // Get returns the slice set by this flag
-func (s *GOGPGlobalNamePrefix) Get() interface{} {
+func (s *GOGPGlobalNamePrefixValue) Get() interface{} {
 	return *s
 }
 
-//#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefix)
-//#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefix)
+//#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixValue)
+//#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixValue)
 //#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
 //#GOGP_REPLACE(GOGPREPSliceValue, f.target)
-//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefix)
+//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
 //#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
 
 //#GOGP_ELSE //GOGP_IfIsSliceType
@@ -258,7 +258,7 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		f.target = f.Target
 	} else {
 		//#GOGP_IFDEF GOGP_IfIsSliceType
-		f.target = NewGOGPGlobalNamePrefix()
+		f.target = NewGOGPGlobalNamePrefixValue()
 		//#GOGP_ELSE
 		f.target = new(GOGPREPRawElemType)
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
@@ -461,7 +461,7 @@ func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType 
 	f := set.Lookup(name)
 	if f != nil {
 		//#GOGP_IFDEF GOGP_IfIsSliceType
-		if slice, ok := f.Value.(*GOGPGlobalNamePrefix); ok {
+		if slice, ok := f.Value.(*GOGPGlobalNamePrefixValue); ok {
 			return slice.Value()
 		}
 		//#GOGP_ELSE //GOGP_IfIsSliceType

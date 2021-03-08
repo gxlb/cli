@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Timestamp wrap to satisfy golang's flag interface.
+// TimestampValue wrap to satisfy golang's flag interface.
 type TimestampValue struct {
 	timestamp  *time.Time
 	hasBeenSet bool
