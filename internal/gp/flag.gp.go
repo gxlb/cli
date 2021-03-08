@@ -88,13 +88,13 @@ func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
 //#GOGP_IFDEF GOGP_IfIsSliceType
 
-// GOGPGlobalNamePrefixSlice wraps []GOGPValueType to satisfy flag.Value
+// GOGPGlobalNamePrefixValue wraps []GOGPValueType to satisfy flag.Value
 type GOGPGlobalNamePrefixValue struct {
 	slice      []GOGPValueType
 	hasBeenSet bool
 }
 
-// NewGOGPGlobalNamePrefix makes an *NewGOGPGlobalNamePrefix with default values
+// NewGOGPGlobalNamePrefixValue makes an *GOGPGlobalNamePrefixValue with default values
 func NewGOGPGlobalNamePrefixValue(defaults ...GOGPValueType) *GOGPGlobalNamePrefixValue {
 	return &GOGPGlobalNamePrefixValue{
 		slice:      append([]GOGPValueType{}, defaults...),
@@ -233,7 +233,7 @@ type GOGPGlobalNamePrefixFlag struct {
 	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
-	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPElemType) if Target not set)
+	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPRawElemType) if Target not set)
 	info   impl.FlagInfo    // parsed info of this flag
 }
 
