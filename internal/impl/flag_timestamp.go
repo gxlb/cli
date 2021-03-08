@@ -56,3 +56,9 @@ func (t *Timestamp) Value() *time.Time {
 func (t *Timestamp) Get() interface{} {
 	return *t
 }
+
+// Generic is a generic parseable type identified by a specific flag
+type Generic interface {
+	Set(value string) error
+	String() string
+}

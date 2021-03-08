@@ -18,6 +18,8 @@ type FlagInfo = impl.FlagInfo
 // Timestamp wrap to satisfy golang's flag interface.
 type Timestamp = impl.Timestamp
 
+type Generic = impl.Generic
+
 // Timestamp constructor
 var NewTimestamp = impl.NewTimestamp
 
