@@ -237,11 +237,12 @@ type GOGPGlobalNamePrefixFlag struct {
 	//#GOGP_IFDEF GOGP_IfIsTimestamp
 	Layout string // Layout of the time format, default **2006-01-02T15:04:05 MST**
 	//#GOGP_ENDIF //GOGP_IfIsTimestamp
-	//#GOGP_IFDEF GOGP_IfNoCompare
-	//#GOGP_ELSE
+
+	//#GOGP_IFDEF !GOGP_IfNoCompare
 	Enums  []GOGPValueType // Enumeration of valid values
 	Ranges []GOGPValueType // {[min,max),[min,max),...} ranges of valid values
 	//#GOGP_ENDIF //GOGP_IfNoCompare
+
 	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
@@ -272,8 +273,9 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 		//#GOGP_IFDEF GOGP_IfIsSliceType
 		f.target = NewGOGPGlobalNamePrefixValue()
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
+
 		//#GOGP_IFDEF GOGP_IfIsTimestamp
-		//#GOGP_COMMENT f.target = impl.NewEmptyTimestampValue()
+		//#GOGP_COMMENT f.target = impl.NewEmptyTimestampValue(f.Layout)
 		//#GOGP_ELSE
 		f.target = new(GOGPREPRawElemType)
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
@@ -285,8 +287,7 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 	if f.Name == "" && len(f.Aliases) > 0 { // Noname ones must without Aliases
 		return fmt.Errorf("flag %s missing name, but has Aliases %v", f.info.LogicName, f.Aliases)
 	}
-	//#GOGP_IFDEF GOGP_IfNoCompare
-	//#GOGP_ELSE
+	//#GOGP_IFDEF !GOGP_IfNoCompare
 	maxSliceLen := impl.MaxSliceLen
 	if l := len(f.Enums); l > 0 { // Enums length check
 		if l > maxSliceLen {

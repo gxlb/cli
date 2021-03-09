@@ -60,8 +60,8 @@ type TimestampValue struct {
 }
 
 // NewEmptyTimestampValue construct a timestamp value by empty
-func NewEmptyTimestampValue() *TimestampValue {
-	p := NewTimestampValue(time.Time{}, "")
+func NewEmptyTimestampValue(layout string) *TimestampValue {
+	p := NewTimestampValue(time.Time{}, layout)
 	p.hasBeenSet = false
 	return p
 }
