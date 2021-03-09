@@ -83,16 +83,13 @@ var GOGP_REPZeroValue GOGPREValueType
 func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
 func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
-/*//////////////////////////
 //TODO:
 type GOGP_REPValueType = *GOGPGlobalNamePrefixValue
-type GOGP_REPTargetType = *GOGPGlobalNamePrefixValue
-
+type GOGP_REPTargetType = *GOGPGlobalNamePrefixValue//
 //GOGP_IfSavePointerValue
 //GOGP_RepaceZeroValue
 //GOGP_RepaceNewValue
 //GOGP_RepaceValidateValue
-*/
 //var GOGP_RepaceZeroValue GOGPREValueType
 
 ////////////////////////////////////////////////////////////////////////////////
