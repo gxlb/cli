@@ -87,8 +87,10 @@ func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 //#GOGP_IGNORE_END //fake defines
 
 //#GOGP_IFDEF GOGP_IfIsTimestamp
+
 //#GOGP_REPLACE(*GOGPREPElemType, *GOGPValueType)
 //#GOGP_REPLACE(GOGPREPElemType, *GOGPValueType)
+
 //#GOGP_ENDIF //GOGP_IfIsTimestamp
 
 //#GOGP_IFDEF GOGP_IfIsSliceType
@@ -202,7 +204,7 @@ func (s *GOGPGlobalNamePrefixValue) Get() interface{} {
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
 //#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
 
-//#GOGP_ELSE //GOGP_IfIsSliceType
+//#GOGP_ELSE // GOGP_IfIsSliceType
 
 //#GOGP_REPLACE(GOGPREPSingleValue, values)
 //#GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
@@ -401,7 +403,7 @@ func (v *GOGPGlobalNamePrefixFlag) Info() *impl.FlagInfo {
 
 // Reset clean the last parsed value of this flag
 func (f *GOGPGlobalNamePrefixFlag) Reset() {
-	//#GOGP_IFDEF GOGP_IfIsSliceType
+	//#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
 	f.target.Reset()
 	//#GOGP_ELSE
 	//#GOGP_COMMENT *f.target = GOGP_REPZeroValue
