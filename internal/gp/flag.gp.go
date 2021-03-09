@@ -25,7 +25,7 @@ package gp
 //#GOGP_FILE_BEGIN
 //#GOGP_IGNORE_BEGIN ///gogp_file_begin
 //
-///*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
+/*   //This line can be uncommented to disable all this file, and it doesn't effect to the .gp file
 //	 //If test or change .gp file required, comment it to modify and compile as normal go file
 //
 // This is a fake go code file
@@ -88,8 +88,9 @@ func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
 //#GOGP_IFDEF GOGP_IfIsTimestamp
 
+//#GOGP_REPLACE(GOGPREPSingleValue, values)
 //#GOGP_REPLACE(*GOGPREPElemType, GOGPValueType)
-//#GOGP_REPLACE(GOGPREPElemType, *GOGPValueType)
+//#GOGP_REPLACE(GOGPREPSliceValue, f.target)
 
 //#GOGP_ENDIF //GOGP_IfIsTimestamp
 
@@ -203,6 +204,7 @@ func (s *GOGPGlobalNamePrefixValue) Get() interface{} {
 //#GOGP_REPLACE(GOGPREPSliceValue, f.target)
 //#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
 //#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
+//#GOGP_REPLACE(GOGPREPSingleValue, values)
 
 //#GOGP_ELSE // GOGP_IfIsSliceType
 
@@ -269,6 +271,9 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 	} else {
 		//#GOGP_IFDEF GOGP_IfIsSliceType
 		f.target = NewGOGPGlobalNamePrefixValue()
+		//#GOGP_ENDIF //GOGP_IfIsSliceType
+		//#GOGP_IFDEF GOGP_IfIsTimestamp
+		//#GOGP_COMMENT f.target = impl.NewEmptyTimestampValue()
 		//#GOGP_ELSE
 		f.target = new(GOGPREPRawElemType)
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
@@ -389,7 +394,7 @@ func (f *GOGPGlobalNamePrefixFlag) String() string {
 
 // ValidateValues verify if all values are valid
 func (f *GOGPGlobalNamePrefixFlag) ValidateValues() error {
-	//#GOGP_IFDEF GOGP_IfIsSliceType
+	//#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
 	return f.validateValues(GOGPREPSliceValue)
 	//#GOGP_ELSE
 	return f.validateValues(*f.target)

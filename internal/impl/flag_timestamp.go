@@ -59,7 +59,14 @@ type TimestampValue struct {
 	layout     string
 }
 
-// Timestamp constructor
+// NewEmptyTimestampValue construct a timestamp value by empty
+func NewEmptyTimestampValue() *TimestampValue {
+	p := NewTimestampValue(time.Time{}, "")
+	p.hasBeenSet = false
+	return p
+}
+
+// NewTimestampValue construct a timestamp value
 func NewTimestampValue(timestamp time.Time, layout string) *TimestampValue {
 	_layout := layout
 	if layout == "" {
@@ -68,7 +75,7 @@ func NewTimestampValue(timestamp time.Time, layout string) *TimestampValue {
 	return &TimestampValue{
 		timestamp:  timestamp,
 		layout:     _layout,
-		hasBeenSet: false,
+		hasBeenSet: true,
 	}
 }
 
