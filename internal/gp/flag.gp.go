@@ -83,8 +83,25 @@ var GOGP_REPZeroValue GOGPREValueType
 func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
 func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
+/*//////////////////////////
+//TODO:
+type GOGP_REPValueType = *GOGPGlobalNamePrefixValue
+type GOGP_REPTargetType = *GOGPGlobalNamePrefixValue
+
+//GOGP_IfSavePointerValue
+//GOGP_RepaceZeroValue
+//GOGP_RepaceNewValue
+//GOGP_RepaceValidateValue
+*/
+//var GOGP_RepaceZeroValue GOGPREValueType
+
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
+
+//#GOGP_IFDEF GOGP_IfIsTimestamp||GOGP_IfIsSliceType
+//#GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+//#GOGP_ELSE //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
+//#GOGP_ENDIF //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
 
 //#GOGP_IFDEF GOGP_IfIsTimestamp
 
@@ -481,6 +498,7 @@ func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType 
 			return slice.Value()
 		}
 		//#GOGP_ELSE //GOGP_IfIsSliceType
+		//TODO:
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
 	}
 	return GOGP_REPZeroValue
