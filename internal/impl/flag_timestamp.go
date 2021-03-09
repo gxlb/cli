@@ -30,7 +30,7 @@ import (
 // DefaultTimestampLayout defines the default time format
 const DefaultTimestampLayout = "2006-01-02T15:04:05 MST"
 
-// TimestampString represent a timestamp string with format **DefaultTimestampLayout**
+// TimestampString represent a timestamp string with format **2006-01-02T15:04:05 MST**
 type TimestampString string
 
 // Less judge if t less than other
@@ -95,6 +95,13 @@ func (t *TimestampValue) Set(value string) error {
 	t.timestamp = timestamp
 	t.hasBeenSet = true
 	return nil
+}
+
+// Reset initialize the timestamp value
+func (t *TimestampValue) Reset() {
+	t.hasBeenSet = false
+	t.layout = DefaultTimestampLayout
+	t.timestamp = time.Time{}
 }
 
 // String returns a readable representation of this value (for usage defaults)

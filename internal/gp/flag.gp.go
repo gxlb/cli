@@ -86,6 +86,11 @@ func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
 
+//#GOGP_IFDEF GOGP_IfIsTimestamp
+//#GOGP_REPLACE(*GOGPREPElemType, *GOGPValueType)
+//#GOGP_REPLACE(GOGPREPElemType, *GOGPValueType)
+//#GOGP_ENDIF //GOGP_IfIsTimestamp
+
 //#GOGP_IFDEF GOGP_IfIsSliceType
 
 // GOGPGlobalNamePrefixValue wraps []GOGPValueType to satisfy flag.Value
@@ -225,6 +230,9 @@ type GOGPGlobalNamePrefixFlag struct {
 	Target      *GOGPREPElemType // Target value pointer outside
 	Default     GOGPREPElemType  // Default value
 	DefaultText string           // Default value display in help info
+	//#GOGP_IFDEF GOGP_IfIsTimestamp
+	Layout string // Layout of the time format, default **2006-01-02T15:04:05 MST**
+	//#GOGP_ENDIF //GOGP_IfIsTimestamp
 	//#GOGP_IFDEF GOGP_IfNoCompare
 	//#GOGP_ELSE
 	Enums  []GOGPValueType // Enumeration of valid values
@@ -396,7 +404,7 @@ func (f *GOGPGlobalNamePrefixFlag) Reset() {
 	//#GOGP_IFDEF GOGP_IfIsSliceType
 	f.target.Reset()
 	//#GOGP_ELSE
-	*f.target = GOGP_ZeroValue
+	//#GOGP_COMMENT *f.target = GOGP_REPZeroValue
 	//#GOGP_ENDIF //GOGP_IfIsSliceType
 	f.info.HasBeenSet = false
 }
@@ -454,7 +462,7 @@ func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
 	if fs := lookupFlagSet(name, c); fs != nil {
 		return lookupGOGPGlobalNamePrefix(name, fs)
 	}
-	return GOGP_ZeroValue
+	return GOGP_REPZeroValue
 }
 
 func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType {
@@ -467,7 +475,7 @@ func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType 
 		//#GOGP_ELSE //GOGP_IfIsSliceType
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
 	}
-	return GOGP_ZeroValue
+	return GOGP_REPZeroValue
 }
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
