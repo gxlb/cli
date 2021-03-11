@@ -106,18 +106,13 @@ type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 //#GOGP_IGNORE_END //fake defines
 
 //#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
-//////#GOGP_MAP(GOGP_IfIsPointerFlagValue, yes)
+//    #GOGP_MAP(GOGP_IfIsPointerFlagValue, yes)
 //#GOGP_IFDEF //GOGP_IfIsSliceType
 
 //#GOGP_IFDEF GOGP_IfIsPointerFlagValue
-//////#GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
-//////#GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
+//    #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
 //#GOGP_IFDEF //GOGP_IfIsPointerFlagValue
-
-//#GOGP_IFDEF GOGP_IfIsTimestamp||GOGP_IfIsSliceType
-
-//#GOGP_ELSE //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
-//#GOGP_ENDIF //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
 
 //#GOGP_IFDEF GOGP_IfIsTimestamp
 
@@ -529,4 +524,3 @@ var _ = (*strconv.NumError)(nil) //avoid compile error
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
 //*/
 //#GOGP_IGNORE_END ///gogp_file_end
-
