@@ -83,20 +83,39 @@ var GOGP_REPZeroValue GOGPREValueType
 func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
 func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
+//////////////////////
 //TODO:
-type GOGP_REPValueType = *GOGPGlobalNamePrefixValue
-type GOGP_REPTargetType = *GOGPGlobalNamePrefixValue//
+//GOGP_IfIsSliceType
+//GOGP_IfIsPointerFlagValue
+//
+//
+//
+//
+type GOGP_ReplaceFlagValueType = GOGPGlobalNamePrefixValue    // raw-falg-value
+type GOGP_ReplaceApiValueType = *GOGPGlobalNamePrefixValue    // api-value
+type GOGP_ReplaceDefaultValueType = GOGP_ReplaceFlagValueType // default
+type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 //GOGP_IfSavePointerValue
 //GOGP_RepaceZeroValue
 //GOGP_RepaceNewValue
 //GOGP_RepaceValidateValue
+//GOGP_RepaceParseFromString
 //var GOGP_RepaceZeroValue GOGPREValueType
 
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
 
+//#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
+//////#GOGP_MAP(GOGP_IfIsPointerFlagValue, yes)
+//#GOGP_IFDEF //GOGP_IfIsSliceType
+
+//#GOGP_IFDEF GOGP_IfIsPointerFlagValue
+//////#GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
+//////#GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+//#GOGP_IFDEF //GOGP_IfIsPointerFlagValue
+
 //#GOGP_IFDEF GOGP_IfIsTimestamp||GOGP_IfIsSliceType
-//#GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+
 //#GOGP_ELSE //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
 //#GOGP_ENDIF //GOGP_IfIsTimestamp||GOGP_IfIsSliceType
 
@@ -245,9 +264,9 @@ type GOGPGlobalNamePrefixFlag struct {
 	//
 	//value related area
 	//
-	Target      *GOGPREPElemType // Target value pointer outside
-	Default     GOGPREPElemType  // Default value
-	DefaultText string           // Default value display in help info
+	Target      GOGP_ReplaceTargetValueType  // Target value pointer outside
+	Default     GOGP_ReplaceDefaultValueType // Default value
+	DefaultText string                       // Default value display in help info
 	//#GOGP_IFDEF GOGP_IfIsTimestamp
 	Layout string // Layout of the time format, default **2006-01-02T15:04:05 MST**
 	//#GOGP_ENDIF //GOGP_IfIsTimestamp
@@ -260,8 +279,8 @@ type GOGPGlobalNamePrefixFlag struct {
 	//
 	////////////////////////////////////////////////////////////////////////////
 	//area for parsing
-	target *GOGPREPElemType // target value pointer(maybe new(GOGPREPRawElemType) if Target not set)
-	info   impl.FlagInfo    // parsed info of this flag
+	target GOGP_ReplaceTargetValueType // target value pointer(maybe new(GOGPREPRawElemType) if Target not set)
+	info   impl.FlagInfo               // parsed info of this flag
 }
 
 // init verify and init the flag info
@@ -510,3 +529,4 @@ var _ = (*strconv.NumError)(nil) //avoid compile error
 //#GOGP_IGNORE_BEGIN ///gogp_file_end
 //*/
 //#GOGP_IGNORE_END ///gogp_file_end
+
