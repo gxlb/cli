@@ -109,6 +109,16 @@ type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 //    #GOGP_MAP(GOGP_IfIsPointerFlagValue, yes)
 //#GOGP_ENDIF //GOGP_IfIsSliceType||GOGP_IfIsTimestamp
 
+//#GOGP_IFDEF GOGP_IfIsSliceType
+//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
+//#GOGP_ENDIF //GOGP_IfIsSliceType
+
+//#GOGP_IFDEF GOGP_IfIsTimestamp
+//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *impl.TimestampValue)
+//#GOGP_ELSE
+//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
+//#GOGP_ENDIF //GOGP_IfIsTimestamp
+
 //#GOGP_IFDEF GOGP_IfIsPointerFlagValue
 //    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
 //    #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
