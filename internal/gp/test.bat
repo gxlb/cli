@@ -1,2 +1,2 @@
-git revert -n HEAD
+git checkout flag.gp.go
 gogp . > test.log 2>&1
