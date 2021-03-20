@@ -125,7 +125,6 @@ type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 //#GOGP_ENDSWITCH
 
 //#GOGP_IFDEF GOGP_IfIsPointerFlagValue
-//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
 //    #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
 //#GOGP_ENDIF //GOGP_IfIsPointerFlagValue
 
