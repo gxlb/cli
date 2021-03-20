@@ -95,9 +95,8 @@ type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 //   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPGlobalNamePrefixValue)
 //   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
 //   #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
-//   #GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixValue)
 //   #GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixValue)
-//   #GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
+//   #GOGP_REPLACE(GOGPREPParseString(value), GOGP_ReplaceParseString)
 //   #GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
 //   #GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
 // #GOGP_ENDCASE //----------------------------
@@ -423,7 +422,7 @@ func (f *GOGPGlobalNamePrefixFlag) Reset() {
 	//#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
 	f.target.Reset()
 	//#GOGP_ELSE
-	//#GOGP_COMMENT *f.target = GOGP_REPZeroValue
+	//#GOGP_COMMENT *f.target = GOGP_RepaceZeroValue
 	//#GOGP_ENDIF //GOGP_IfIsSliceType
 	f.info.HasBeenSet = false
 }
@@ -481,7 +480,7 @@ func (c *Context) GOGPGlobalNamePrefix(name string) GOGPREValueType {
 	if fs := lookupFlagSet(name, c); fs != nil {
 		return lookupGOGPGlobalNamePrefix(name, fs)
 	}
-	return GOGP_REPZeroValue
+	return GOGP_RepaceZeroValue
 }
 
 func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType {
@@ -495,7 +494,7 @@ func lookupGOGPGlobalNamePrefix(name string, set *flag.FlagSet) GOGPREValueType 
 		//TODO:
 		//#GOGP_ENDIF //GOGP_IfIsSliceType
 	}
-	return GOGP_REPZeroValue
+	return GOGP_RepaceZeroValue
 }
 
 var _ impl.Flag = (*GOGPGlobalNamePrefixFlag)(nil) //for interface verification only
