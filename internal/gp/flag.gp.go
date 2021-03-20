@@ -111,12 +111,15 @@ type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
 
 //#GOGP_SWITCH
 // #GOGP_CASE GOGP_IfIsSliceType
-//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
 // #GOGP_ENDCASE
 // #GOGP_CASE GOGP_IfIsTimestamp
-//    #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *impl.TimestampValue)
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *impl.TimestampValue)
+//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *impl.TimestampValue)
 // #GOGP_ENDCASE
 // #GOGP_DEFAULT
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPValueType)
 //   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
 // #GOGP_ENDCASE
 //#GOGP_ENDSWITCH
@@ -310,15 +313,17 @@ func (f *GOGPGlobalNamePrefixFlag) init(namegen *util.NameGenenerator) error {
 	if f.Target != nil {
 		f.target = f.Target
 	} else {
-		//#GOGP_IFDEF GOGP_IfIsSliceType
+		//  #GOGP_SWITCH
+		//      #GOGP_CASE GOGP_IfIsSliceType
 		f.target = NewGOGPGlobalNamePrefixValue()
-		//#GOGP_ENDIF //GOGP_IfIsSliceType
-
-		//#GOGP_IFDEF GOGP_IfIsTimestamp
+		//      #GOGP_ENDCASE //GOGP_IfIsSliceType
+		//      #GOGP_CASE GOGP_IfIsTimestamp
 		//#GOGP_COMMENT f.target = impl.NewEmptyTimestampValue(f.Layout)
-		//#GOGP_ELSE
-		f.target = new(GOGPREPRawElemType)
-		//#GOGP_ENDIF //GOGP_IfIsSliceType
+		//      #GOGP_ENDCASE //GOGP_IfIsSliceType
+		//      #GOGP_DEFAULT
+		//#GOGP_COMMENT f.target = new(GOGPValueType)
+		//      #GOGP_ENDCASE //GOGP_IfIsSliceType
+		//  #GOGP_ENDSWITCH
 	}
 
 	if f.Name == "" && f.LogicName == "" { // Name & LogicName cannot both missing
