@@ -84,59 +84,15 @@ func GOGPREPParseString(string) (a GOGPValueType, e error)  { return }
 func lookupFlagSet(name string, ctx *Context) *flag.FlagSet { return nil }
 
 //////////////////////
-//TODO:
-//GOGP_IfIsSliceType
-//GOGP_IfIsPointerFlagValue
-//
-//
-//
-//
 type GOGP_ReplaceFlagValueType = GOGPGlobalNamePrefixValue    // raw-falg-value
 type GOGP_ReplaceApiValueType = *GOGPGlobalNamePrefixValue    // api-value
 type GOGP_ReplaceDefaultValueType = GOGP_ReplaceFlagValueType // default
 type GOGP_ReplaceTargetValueType = *GOGPGlobalNamePrefixValue // target
-//GOGP_IfSavePointerValue
-//GOGP_RepaceZeroValue
-//GOGP_RepaceNewValue
-//GOGP_RepaceValidateValue
-//GOGP_RepaceParseFromString
-//var GOGP_RepaceZeroValue GOGPREValueType
 
 ////////////////////////////////////////////////////////////////////////////////
 //#GOGP_IGNORE_END //fake defines
 
-//#GOGP_IFDEF GOGP_IfIsSliceType||GOGP_IfIsTimestamp
-//    #GOGP_MAP(GOGP_IfIsPointerFlagValue, yes)
-//#GOGP_ENDIF //GOGP_IfIsSliceType||GOGP_IfIsTimestamp
-
-//#GOGP_SWITCH
-// #GOGP_CASE GOGP_IfIsSliceType
-//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPGlobalNamePrefixValue)
-//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
-// #GOGP_ENDCASE
-// #GOGP_CASE GOGP_IfIsTimestamp
-//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *impl.TimestampValue)
-//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *impl.TimestampValue)
-// #GOGP_ENDCASE
-// #GOGP_DEFAULT
-//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPValueType)
-//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
-// #GOGP_ENDCASE
-//#GOGP_ENDSWITCH
-
-//#GOGP_IFDEF GOGP_IfIsPointerFlagValue
-//    #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
-//#GOGP_ENDIF //GOGP_IfIsPointerFlagValue
-
-//#GOGP_IFDEF GOGP_IfIsTimestamp
-
-//#GOGP_REPLACE(GOGPREPSingleValue, values)
-//#GOGP_REPLACE(*GOGPREPElemType, GOGPValueType)
-//#GOGP_REPLACE(GOGPREPSliceValue, f.target)
-
-//#GOGP_ENDIF //GOGP_IfIsTimestamp
-
-//#GOGP_IFDEF GOGP_IfIsSliceType
+//#GOGP_IFDEF GOGP_IfIsSliceType //slice----------------------------------------
 
 // GOGPGlobalNamePrefixValue wraps []GOGPValueType to satisfy flag.Value
 type GOGPGlobalNamePrefixValue struct {
@@ -240,22 +196,40 @@ func (s *GOGPGlobalNamePrefixValue) Get() interface{} {
 	return *s
 }
 
-//#GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixValue)
-//#GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixValue)
-//#GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
-//#GOGP_REPLACE(GOGPREPSliceValue, f.target)
-//#GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
-//#GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
-//#GOGP_REPLACE(GOGPREPSingleValue, values)
+//#GOGP_ENDIF //GOGP_IfIsSliceType //slice--------------------------------------
 
-//#GOGP_ELSE // GOGP_IfIsSliceType
-
-//#GOGP_REPLACE(GOGPREPSingleValue, values)
-//#GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
-//#GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
-//#GOGP_REPLACE(GOGPREValueType, GOGPValueType)
-
-//#GOGP_ENDIF //GOGP_IfIsSliceType
+//#GOGP_SWITCH //---------------------------------------------------------------
+// #GOGP_CASE GOGP_IfIsSliceType
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+//   #GOGP_REPLACE(*GOGPREPElemType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGPREPElemType, *GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGPREPParseString(value), GOGPParseString)
+//   #GOGP_REPLACE(GOGPREPSliceValue, f.target)
+//   #GOGP_REPLACE(GOGPREPRawElemType, GOGPGlobalNamePrefixValue)
+//   #GOGP_REPLACE(GOGPREValueType, []GOGPValueType)
+//   #GOGP_REPLACE(GOGPREPSingleValue, values)
+// #GOGP_ENDCASE //----------------------------
+// #GOGP_CASE GOGP_IfIsTimestamp
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *impl.TimestampValue)
+//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, *impl.TimestampValue)
+//   #GOGP_REPLACE(GOGP_RepaceZeroValue, nil)
+//   #GOGP_REPLACE(GOGPREPSingleValue, values)
+//   #GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREValueType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREPSliceValue, f.target)
+// #GOGP_ENDCASE //----------------------------
+// #GOGP_DEFAULT
+//   #GOGP_REPLACE(GOGP_ReplaceTargetValueType, *GOGPValueType)
+//   #GOGP_REPLACE(GOGP_ReplaceDefaultValueType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREPSingleValue, values)
+//   #GOGP_REPLACE(GOGPREPElemType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREPRawElemType, GOGPValueType)
+//   #GOGP_REPLACE(GOGPREValueType, GOGPValueType)
+// #GOGP_ENDCASE //----
+//#GOGP_ENDSWITCH //------------------------------------------------------------
 
 // GOGPGlobalNamePrefixFlag define a value of type GOGPREPElemType
 type GOGPGlobalNamePrefixFlag struct {
